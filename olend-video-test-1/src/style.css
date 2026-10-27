@@ -86,6 +86,7 @@ button {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
+  touch-action: pan-x;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -99,8 +100,35 @@ button {
   height: 142px;
   flex: 0 0 142px;
   object-fit: contain;
+  cursor: grab;
   user-select: none;
+  touch-action: pan-x;
   -webkit-user-drag: none;
+}
+
+.item-image.is-dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}
+
+.drag-preview {
+  position: fixed;
+  z-index: 5;
+  width: 142px;
+  height: 142px;
+  pointer-events: none;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 20px rgb(0 0 0 / 24%));
+  transform: scale(1.05);
+}
+
+.layout-spacer {
+  min-height: 0;
+  transition: background-color 180ms ease;
+}
+
+.experience.is-drop-target .layout-spacer {
+  background: rgb(255 250 240 / 5%);
 }
 
 .product-details {
