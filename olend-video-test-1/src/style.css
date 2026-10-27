@@ -8,7 +8,7 @@
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
 
-  --ink: #fffaf0;
+  --ink: #000;
   --muted: rgb(255 250 240 / 68%);
   --line: rgb(255 250 240 / 42%);
   --accent: #e8c79d;
@@ -53,6 +53,7 @@ button {
   z-index: 1;
   display: grid;
   width: min(100vw, 430px);
+  /* width: 100%; */
   height: min(100svh, 764px, 177.78vw);
   min-height: min(540px, 100svh);
   padding: 32px 22px 24px;
@@ -160,9 +161,9 @@ button {
   min-height: 48px;
   flex: 1;
   border: 1px solid var(--ink);
-  border-radius: 0;
+  border-radius: 26px;
   padding: 0 14px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -186,8 +187,19 @@ button {
 }
 
 .button-primary {
-  color: #171a18;
+  /* color: #171a18; */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
   background: var(--ink);
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 .button-primary:hover {

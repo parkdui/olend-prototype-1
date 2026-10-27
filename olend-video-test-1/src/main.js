@@ -1,6 +1,7 @@
 import "./style.css";
 import backgroundVideo from "./assets/test_kling4_1.mp4";
 import logo from "./assets/Olend_logo_main.png";
+import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
 import item003 from "./assets/items/item003.png";
@@ -54,7 +55,10 @@ document.querySelector("#app").innerHTML = `
       <p class="product-price">CHF 90</p>
       <div class="product-actions">
         <button class="button button-secondary" type="button">Discover</button>
-        <button class="button button-primary" type="button">Add to bag</button>
+        <button class="button button-primary" type="button">
+          <img class="button-icon" src="${shoppingBagIcon}" alt="" aria-hidden="true" />
+          Add to bag
+        </button>
       </div>
     </section>
   </main>
@@ -73,7 +77,7 @@ video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
 });
 
-const segmentDuration = 2;
+const segmentDuration = 1;
 const playbackLimit = 10;
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
