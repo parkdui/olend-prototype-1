@@ -13,15 +13,37 @@ import item007 from "./assets/items/item007.png";
 import item008 from "./assets/items/item008.png";
 
 const items = [
-  item001,
-  item002,
-  item003,
-  item004,
-  item005,
-  item006,
-  item007,
-  item008,
+  { id: "item001", src: item001 },
+  { id: "item002", src: item002 },
+  { id: "item003", src: item003 },
+  { id: "item004", src: item004 },
+  { id: "item005", src: item005 },
+  { id: "item006", src: item006 },
+  { id: "item007", src: item007 },
+  { id: "item008", src: item008 },
 ];
+
+const DRAG_ITEM_SCALES = {
+  item001: 0.9,
+  item002: 0.9,
+  item003: 1.6,
+  item004: 2.4,
+  item005: 1.5,
+  item006: 1.2,
+  item007: 0.6,
+  item008: 2.4,
+};
+
+const ITEM_PLAY_DURATION = {
+  item001: 0.4,
+  item002: 0.6,
+  item003: 1,
+  item004: 3,
+  item005: 1.5,
+  item006: 1,
+  item007: 0.5,
+  item008: 2,
+};
 
 document.querySelector("#app").innerHTML = `
   <video class="background-video" aria-hidden="true" muted playsinline preload="auto">
@@ -36,13 +58,14 @@ document.querySelector("#app").innerHTML = `
       <div class="item-carousel" aria-label="Scroll to explore bag styles">
         ${items
           .map(
-            (item, index) => `
-              <div class="item-tile">
+            ({ id, src }, index) => `
+              <div class="item-tile" data-item-id="${id}">
                 <img
                   class="item-image"
-                  src="${item}"
+                  src="${src}"
                   alt="ONA SOFT BAG style ${index + 1}"
                   draggable="false"
+                  data-drag-scale="${DRAG_ITEM_SCALES[id]}"
                 />
                 <button
                   class="used-item-button"
@@ -86,7 +109,6 @@ video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
 });
 
-const segmentDuration = 1;
 const playbackLimit = 10;
 const REVERSE_FRAME_RATE = 25;
 const USED_ITEM_OPACITY = 0.4;
@@ -177,6 +199,13 @@ const playNextSegment = async (image) => {
     return;
   }
 
+  const itemId = image.closest(".item-tile").dataset.itemId;
+  const playDuration = ITEM_PLAY_DURATION[itemId];
+  if (!Number.isFinite(playDuration) || playDuration <= 0) {
+    console.error(`Missing a valid play duration for ${itemId}.`);
+    return;
+  }
+
   usedItems.add(image);
   image.closest(".item-tile").classList.add("is-used");
   image.style.opacity = String(USED_ITEM_OPACITY);
@@ -190,9 +219,9 @@ const playNextSegment = async (image) => {
 
     const videoEnd = Math.min(video.duration, playbackLimit);
     const startTime = nextSegmentStart;
-    const endTime = Math.min(startTime + segmentDuration, videoEnd);
+    const endTime = Math.min(startTime + playDuration, videoEnd);
 
-    if (startTime >= endTime) {
+    if (endTime - startTime < 0.001) {
       finishSegment(startTime, runId);
       return;
     }
@@ -216,7 +245,7 @@ const playNextSegment = async (image) => {
   }
 };
 
-const rewindPreviousSegment = async () => {
+const rewindPreviousSegment = async (playDuration) => {
   const runId = ++playbackRunId;
   cancelAnimationFrame(animationFrame);
   video.pause();
@@ -228,7 +257,7 @@ const rewindPreviousSegment = async () => {
     if (runId !== playbackRunId) return;
 
     const startTime = Math.min(video.currentTime, playbackLimit);
-    const endTime = Math.max(0, startTime - segmentDuration);
+    const endTime = Math.max(0, startTime - playDuration);
     if (startTime <= endTime) {
       finishSegment(endTime, runId);
       return;
@@ -243,7 +272,8 @@ const rewindPreviousSegment = async () => {
       await seekVideoTo(nextTime);
       if (runId !== playbackRunId) return;
 
-      const remainingInterval = frameInterval - (performance.now() - frameStart);
+      const remainingInterval =
+        frameInterval - (performance.now() - frameStart);
       if (remainingInterval > 0) {
         await new Promise((resolve) => setTimeout(resolve, remainingInterval));
       }
@@ -267,10 +297,17 @@ carousel.addEventListener("click", (event) => {
   const image = tile.querySelector(".item-image");
   if (!usedItems.has(image)) return;
 
+  const itemId = tile.dataset.itemId;
+  const playDuration = ITEM_PLAY_DURATION[itemId];
+  if (!Number.isFinite(playDuration) || playDuration <= 0) {
+    console.error(`Missing a valid play duration for ${itemId}.`);
+    return;
+  }
+
   usedItems.delete(image);
   tile.classList.remove("is-used");
   image.style.removeProperty("opacity");
-  void rewindPreviousSegment();
+  void rewindPreviousSegment(playDuration);
 });
 
 const clearDrag = () => {
@@ -285,10 +322,13 @@ const clearDrag = () => {
 const createPreview = (image, x, y) => {
   const bounds = image.getBoundingClientRect();
   const preview = image.cloneNode();
+  const scale = Number(image.dataset.dragScale);
 
   preview.classList.add("drag-preview");
-  preview.style.left = `${x - bounds.width / 2}px`;
-  preview.style.top = `${y - bounds.height / 2}px`;
+  preview.style.width = `${bounds.width * scale}px`;
+  preview.style.height = `${bounds.height * scale}px`;
+  preview.style.left = `${x - (bounds.width * scale) / 2}px`;
+  preview.style.top = `${y - (bounds.height * scale) / 2}px`;
   document.body.append(preview);
   return preview;
 };
