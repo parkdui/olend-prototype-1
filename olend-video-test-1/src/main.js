@@ -54,7 +54,6 @@ document.querySelector("#app").innerHTML = `
       <h1 id="product-name">ONA SOFT BAG</h1>
       <p class="product-price">CHF 90</p>
       <div class="product-actions">
-        <button class="button button-secondary" type="button">Discover</button>
         <button class="button button-primary" type="button">
           <img class="button-icon" src="${shoppingBagIcon}" alt="" aria-hidden="true" />
           Add to bag
