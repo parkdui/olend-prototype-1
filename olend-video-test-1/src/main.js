@@ -1,6 +1,6 @@
 import "./style.css";
 import onaBackgroundVideo from "./assets/ona_2.mp4";
-import dumplingBackgroundVideo from "./assets/dumpling_1.mp4";
+import dumplingBackgroundVideo from "./assets/dumpling_1_pressed.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import usedItemIcon from "./assets/icons/Cross.svg";
@@ -35,7 +35,7 @@ const DRAG_ITEM_SCALES = {
   item008: 2.4,
 };
 
-const ITEM_PLAY_DURATION = {
+const ONA_ITEM_PLAY_DURATION = {
   item001: 0.4,
   item002: 0.6,
   item003: 1,
@@ -46,9 +46,35 @@ const ITEM_PLAY_DURATION = {
   item008: 2,
 };
 
+const DUMPLING_ITEM_PLAY_DURATION = {
+  item001: 0.6,
+  item002: 0.7,
+  item003: null,
+  item004: null,
+  item005: 2,
+  item006: 2,
+  item007: 0.7,
+  item008: 3,
+};
+
+const ITEM_NAMES = {
+  item001: "Pencil",
+  item002: "Keychain",
+  item003: "Headphone",
+  item004: "Laptop",
+  item005: "Bottle",
+  item006: "Phone",
+  item007: "Lipstick",
+  item008: "Notebook",
+};
+
 const app = document.querySelector("#app");
 const isDumplingPage = app.dataset.product === "dumpling";
 const productName = isDumplingPage ? "Dumpling Bag" : "Ona Soft Bag";
+const ITEM_PLAY_DURATION = isDumplingPage
+  ? DUMPLING_ITEM_PLAY_DURATION
+  : ONA_ITEM_PLAY_DURATION;
+const playbackLimit = isDumplingPage ? 5 : 10;
 const backgroundVideo = isDumplingPage
   ? dumplingBackgroundVideo
   : onaBackgroundVideo;
@@ -71,7 +97,7 @@ app.innerHTML = `
                 <img
                   class="item-image"
                   src="${src}"
-                  alt="${productName} style ${index + 1}"
+                  alt="${isDumplingPage ? ITEM_NAMES[id] : `${productName} style ${index + 1}`}"
                   draggable="false"
                   data-drag-scale="${DRAG_ITEM_SCALES[id]}"
                 />
@@ -204,7 +230,6 @@ video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
 });
 
-const playbackLimit = 10;
 const REVERSE_FRAME_RATE = 25;
 const USED_ITEM_OPACITY = 0.4;
 const RECOMMENDATION_PLAY_DURATION_LIMIT = 1.7;
@@ -214,16 +239,28 @@ let animationFrame = 0;
 let playbackRunId = 0;
 let activeDrag = null;
 const usedItems = new WeakSet();
+const playedItemDurations = new WeakMap();
 
 addToBagButton.addEventListener("click", () => {
+  if (isDumplingPage) return;
+
   const usedPlayDuration = [
     ...carousel.querySelectorAll(".item-tile.is-used"),
-  ].reduce((total, tile) => total + ITEM_PLAY_DURATION[tile.dataset.itemId], 0);
+  ].reduce((total, tile) => {
+    const duration = ITEM_PLAY_DURATION[tile.dataset.itemId];
+    return Number.isFinite(duration) ? total + duration : total;
+  }, 0);
 
   if (usedPlayDuration < RECOMMENDATION_PLAY_DURATION_LIMIT) {
     recommendationDialog.showModal();
   }
 });
+
+const showRecommendation = () => {
+  if (!recommendationDialog.open) {
+    recommendationDialog.showModal();
+  }
+};
 
 exploreMoreButton.addEventListener("click", () => {
   recommendationDialog.close();
@@ -284,7 +321,7 @@ const seekVideoTo = (time) =>
     }
   });
 
-const finishSegment = (endTime, runId) => {
+const finishSegment = (endTime, runId, showRecommendationAfter = false) => {
   if (runId !== playbackRunId) return;
 
   cancelAnimationFrame(animationFrame);
@@ -293,23 +330,28 @@ const finishSegment = (endTime, runId) => {
   nextSegmentStart = endTime;
   isPlayingSegment = false;
   experience.classList.remove("is-playing");
+  if (showRecommendationAfter) {
+    showRecommendation();
+  }
 };
 
-const watchSegment = (endTime, runId) => {
+const watchSegment = (endTime, runId, showRecommendationAfter) => {
   if (runId !== playbackRunId) return;
 
   if (video.currentTime >= endTime || video.ended) {
-    finishSegment(endTime, runId);
+    finishSegment(endTime, runId, showRecommendationAfter);
     return;
   }
 
-  animationFrame = requestAnimationFrame(() => watchSegment(endTime, runId));
+  animationFrame = requestAnimationFrame(() =>
+    watchSegment(endTime, runId, showRecommendationAfter),
+  );
 };
 
 const playNextSegment = async (image) => {
   if (
     isPlayingSegment ||
-    nextSegmentStart >= playbackLimit ||
+    (nextSegmentStart >= playbackLimit && !isDumplingPage) ||
     usedItems.has(image)
   ) {
     return false;
@@ -317,8 +359,17 @@ const playNextSegment = async (image) => {
 
   const itemId = image.closest(".item-tile").dataset.itemId;
   const playDuration = ITEM_PLAY_DURATION[itemId];
+  if (isDumplingPage && playDuration === null) {
+    showRecommendation();
+    return false;
+  }
   if (!Number.isFinite(playDuration) || playDuration <= 0) {
     console.error(`Missing a valid play duration for ${itemId}.`);
+    return false;
+  }
+
+  if (nextSegmentStart >= playbackLimit) {
+    showRecommendation();
     return false;
   }
 
@@ -336,12 +387,15 @@ const playNextSegment = async (image) => {
     const videoEnd = Math.min(video.duration, playbackLimit);
     const startTime = nextSegmentStart;
     const endTime = Math.min(startTime + playDuration, videoEnd);
+    const showRecommendationAfter =
+      isDumplingPage && startTime + playDuration > playbackLimit;
 
     if (endTime - startTime < 0.001) {
-      finishSegment(startTime, runId);
+      finishSegment(startTime, runId, showRecommendationAfter);
       return false;
     }
 
+    playedItemDurations.set(image, endTime - startTime);
     video.currentTime = startTime;
     await video.play();
     if (runId !== playbackRunId) {
@@ -349,7 +403,9 @@ const playNextSegment = async (image) => {
       return false;
     }
 
-    animationFrame = requestAnimationFrame(() => watchSegment(endTime, runId));
+    animationFrame = requestAnimationFrame(() =>
+      watchSegment(endTime, runId, showRecommendationAfter),
+    );
     return true;
   } catch (error) {
     if (runId !== playbackRunId) return false;
@@ -416,13 +472,15 @@ carousel.addEventListener("click", (event) => {
   if (!usedItems.has(image)) return;
 
   const itemId = tile.dataset.itemId;
-  const playDuration = ITEM_PLAY_DURATION[itemId];
-  if (!Number.isFinite(playDuration) || playDuration <= 0) {
+  const configuredDuration = ITEM_PLAY_DURATION[itemId];
+  if (!Number.isFinite(configuredDuration) || configuredDuration <= 0) {
     console.error(`Missing a valid play duration for ${itemId}.`);
     return;
   }
 
+  const playDuration = playedItemDurations.get(image) ?? configuredDuration;
   usedItems.delete(image);
+  playedItemDurations.delete(image);
   tile.classList.remove("is-used");
   image.style.removeProperty("opacity");
   void rewindPreviousSegment(playDuration);
@@ -457,7 +515,7 @@ carousel.addEventListener("pointerdown", (event) => {
     !image ||
     event.button !== 0 ||
     isPlayingSegment ||
-    nextSegmentStart >= playbackLimit ||
+    (nextSegmentStart >= playbackLimit && !isDumplingPage) ||
     usedItems.has(image)
   ) {
     return;
