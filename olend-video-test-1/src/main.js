@@ -374,7 +374,7 @@ const createPreview = (image, x, y) => {
   preview.style.height = `${bounds.height * scale}px`;
   preview.style.left = `${x - (bounds.width * scale) / 2}px`;
   preview.style.top = `${y - (bounds.height * scale) / 2}px`;
-  document.body.append(preview);
+  app.append(preview);
   return preview;
 };
 
