@@ -103,6 +103,7 @@ const video = document.querySelector(".background-video");
 const app = document.querySelector("#app");
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
+const dropdownIndicator = document.querySelector(".dropdown-indicator");
 let lastTouchTap = null;
 
 const enterFullscreen = async () => {
@@ -241,14 +242,14 @@ const playNextSegment = async (image) => {
     nextSegmentStart >= playbackLimit ||
     usedItems.has(image)
   ) {
-    return;
+    return false;
   }
 
   const itemId = image.closest(".item-tile").dataset.itemId;
   const playDuration = ITEM_PLAY_DURATION[itemId];
   if (!Number.isFinite(playDuration) || playDuration <= 0) {
     console.error(`Missing a valid play duration for ${itemId}.`);
-    return;
+    return false;
   }
 
   usedItems.add(image);
@@ -260,7 +261,7 @@ const playNextSegment = async (image) => {
 
   try {
     await waitForVideoMetadata();
-    if (runId !== playbackRunId) return;
+    if (runId !== playbackRunId) return false;
 
     const videoEnd = Math.min(video.duration, playbackLimit);
     const startTime = nextSegmentStart;
@@ -268,25 +269,27 @@ const playNextSegment = async (image) => {
 
     if (endTime - startTime < 0.001) {
       finishSegment(startTime, runId);
-      return;
+      return false;
     }
 
     video.currentTime = startTime;
     await video.play();
     if (runId !== playbackRunId) {
       video.pause();
-      return;
+      return false;
     }
 
     animationFrame = requestAnimationFrame(() => watchSegment(endTime, runId));
+    return true;
   } catch (error) {
-    if (runId !== playbackRunId) return;
+    if (runId !== playbackRunId) return false;
 
     cancelAnimationFrame(animationFrame);
     video.pause();
     isPlayingSegment = false;
     experience.classList.remove("is-playing");
     console.error("Unable to play the next video segment:", error);
+    return false;
   }
 };
 
@@ -448,7 +451,11 @@ document.addEventListener("pointerup", (event) => {
   clearDrag();
 
   if (droppedBelowCarousel) {
-    void playNextSegment(droppedImage);
+    void playNextSegment(droppedImage).then((didPlay) => {
+      if (didPlay) {
+        dropdownIndicator.classList.add("is-hidden");
+      }
+    });
   }
 });
 
