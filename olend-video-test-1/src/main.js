@@ -63,7 +63,7 @@ document.querySelector("#app").innerHTML = `
                 <img
                   class="item-image"
                   src="${src}"
-                  alt="ONA SOFT BAG style ${index + 1}"
+                  alt="Ona Soft Bag style ${index + 1}"
                   draggable="false"
                   data-drag-scale="${DRAG_ITEM_SCALES[id]}"
                 />
@@ -82,9 +82,12 @@ document.querySelector("#app").innerHTML = `
     </section>
 
     <div class="layout-spacer" aria-hidden="true"></div>
+    <div class="dropdown-indicator">
+      <p class="dropdown-indicator-text">Drag essentials into your bag</p>
+    </div>
 
     <section class="product-details" aria-labelledby="product-name">
-      <h1 id="product-name">ONA SOFT BAG</h1>
+      <h1 id="product-name">Ona Soft Bag</h1>
       <p class="product-price">CHF 90</p>
       <div class="product-actions">
         <button class="button button-primary" type="button">
