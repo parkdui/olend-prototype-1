@@ -1,5 +1,6 @@
 import "./style.css";
-import backgroundVideo from "./assets/test_kling4_1.mp4";
+import onaBackgroundVideo from "./assets/ona_2.mp4";
+import dumplingBackgroundVideo from "./assets/dumpling_1.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import usedItemIcon from "./assets/icons/Cross.svg";
@@ -45,7 +46,14 @@ const ITEM_PLAY_DURATION = {
   item008: 2,
 };
 
-document.querySelector("#app").innerHTML = `
+const app = document.querySelector("#app");
+const isDumplingPage = app.dataset.product === "dumpling";
+const productName = isDumplingPage ? "Dumpling Bag" : "Ona Soft Bag";
+const backgroundVideo = isDumplingPage
+  ? dumplingBackgroundVideo
+  : onaBackgroundVideo;
+
+app.innerHTML = `
   <video class="background-video" aria-hidden="true" muted playsinline preload="auto">
     <source src="${backgroundVideo}" type="video/mp4" />
   </video>
@@ -63,7 +71,7 @@ document.querySelector("#app").innerHTML = `
                 <img
                   class="item-image"
                   src="${src}"
-                  alt="Ona Soft Bag style ${index + 1}"
+                  alt="${productName} style ${index + 1}"
                   draggable="false"
                   data-drag-scale="${DRAG_ITEM_SCALES[id]}"
                 />
@@ -87,23 +95,64 @@ document.querySelector("#app").innerHTML = `
     </div>
 
     <section class="product-details" aria-labelledby="product-name">
-      <h1 id="product-name">Ona Soft Bag</h1>
+      <h1 id="product-name">${productName}</h1>
       <p class="product-price">CHF 90</p>
       <div class="product-actions">
-        <button class="button button-primary" type="button">
+        <button class="button button-primary add-to-bag-button" type="button">
           <img class="button-icon" src="${shoppingBagIcon}" alt="" aria-hidden="true" />
           Add to bag
         </button>
       </div>
     </section>
   </main>
+  <dialog class="recommendation-dialog" aria-labelledby="recommendation-title">
+    <div class="recommendation-heading">
+      <svg class="recommendation-icon" viewBox="0 0 40 48" fill="none" aria-hidden="true">
+        <path d="M10 15h20l3.2 25.1a4 4 0 0 1-4 4.5H10.8a4 4 0 0 1-4-4.5L10 15Z" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M14 16V11a6 6 0 0 1 12 0v5M20 24v8M20 37h.02" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+      </svg>
+      <h2 id="recommendation-title">Your bag’s a bit roomy.<br />These might be a better fit.</h2>
+    </div>
+    <div class="recommendation-products">
+      <article class="recommendation-product">
+        <div class="recommendation-image">
+          <svg viewBox="0 0 300 210" role="img" aria-label="Illustration of a black Micro Ona Soft Bag">
+            <path d="M115 153C125 95 120 18 153 13c37-6 28 99 42 140" fill="none" stroke="#252525" stroke-width="8" stroke-linecap="round"/>
+            <path d="M115 153c-6 7-11 13-16 18m96-18 12 18" fill="none" stroke="#252525" stroke-width="5" stroke-linecap="round"/>
+            <path d="m105 159 10 5 4 24-9 5-11-8 3-17 3-9Zm90 0-10 5-4 24 9 5 11-8-3-17-3-9Z" fill="#252525"/>
+            <path d="m111 167 78-1 8 28-14 8-65-1-15-9 8-25Z" fill="#292929" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M136 169c2-13 9-21 17-21s15 8 17 21" fill="none" stroke="#242424" stroke-width="7" stroke-linecap="round"/>
+            <path d="m118 176 63-1m-59 8 56-1m-49 8 42-1" stroke="#464646" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>Micro Ona Soft Bag</h3>
+        <p>CHF 83</p>
+      </article>
+      <article class="recommendation-product">
+        <div class="recommendation-image">
+          <svg viewBox="0 0 300 210" role="img" aria-label="Illustration of a red Brooklyn Bag">
+            <path d="M118 152c12-37 12-135 35-137 24-2 22 101 38 139" fill="none" stroke="#9e2939" stroke-width="7" stroke-linecap="round"/>
+            <path d="m119 151-18 48m88-48 18 48" fill="none" stroke="#9e2939" stroke-width="5" stroke-linecap="round"/>
+            <path d="M115 158c13 2 17 9 24 4 7-5 10-10 16-8 8 3 10 8 18 7 8-1 11-6 18-4l8 7-8 28c-24 13-58 13-82-1l-4-24 10-9Z" fill="#a52b3c" stroke="#82202f" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M122 163c5 11 10 16 16 19m6-22c0 11 4 18 10 23m9-23c-2 11-1 18 4 24m10-26c2 10 6 15 11 19" fill="none" stroke="#d16b77" stroke-width="2" stroke-linecap="round"/>
+            <path d="m114 166-10 4 10 7m82-10 10 4-10 7" fill="none" stroke="#82202f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Brooklyn Bag</h3>
+        <p>CHF 125</p>
+      </article>
+    </div>
+    <button class="recommendation-explore" type="button">Explore more</button>
+  </dialog>
 `;
 
 const video = document.querySelector(".background-video");
-const app = document.querySelector("#app");
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
 const dropdownIndicator = document.querySelector(".dropdown-indicator");
+const recommendationDialog = document.querySelector(".recommendation-dialog");
+const addToBagButton = document.querySelector(".add-to-bag-button");
+const exploreMoreButton = document.querySelector(".recommendation-explore");
 let lastTouchTap = null;
 
 const enterFullscreen = async () => {
@@ -158,12 +207,33 @@ video.addEventListener("error", () => {
 const playbackLimit = 10;
 const REVERSE_FRAME_RATE = 25;
 const USED_ITEM_OPACITY = 0.4;
+const RECOMMENDATION_PLAY_DURATION_LIMIT = 1.7;
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
 let playbackRunId = 0;
 let activeDrag = null;
 const usedItems = new WeakSet();
+
+addToBagButton.addEventListener("click", () => {
+  const usedPlayDuration = [
+    ...carousel.querySelectorAll(".item-tile.is-used"),
+  ].reduce((total, tile) => total + ITEM_PLAY_DURATION[tile.dataset.itemId], 0);
+
+  if (usedPlayDuration < RECOMMENDATION_PLAY_DURATION_LIMIT) {
+    recommendationDialog.showModal();
+  }
+});
+
+exploreMoreButton.addEventListener("click", () => {
+  recommendationDialog.close();
+});
+
+recommendationDialog.addEventListener("click", (event) => {
+  if (event.target === recommendationDialog) {
+    recommendationDialog.close();
+  }
+});
 
 const waitForVideoMetadata = () => {
   if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
