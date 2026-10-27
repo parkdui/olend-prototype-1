@@ -44,7 +44,13 @@ document.querySelector("#app").innerHTML = `
                   alt="ONA SOFT BAG style ${index + 1}"
                   draggable="false"
                 />
-                <img class="used-item-icon" src="${usedItemIcon}" alt="Already used" />
+                <button
+                  class="used-item-button"
+                  type="button"
+                  aria-label="Remove used mark from item ${index + 1} and rewind video"
+                >
+                  <img class="used-item-icon" src="${usedItemIcon}" alt="" />
+                </button>
               </div>
             `,
           )
@@ -82,10 +88,12 @@ video.addEventListener("error", () => {
 
 const segmentDuration = 1;
 const playbackLimit = 10;
+const REVERSE_FRAME_RATE = 25;
 const USED_ITEM_OPACITY = 0.4;
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
+let playbackRunId = 0;
 let activeDrag = null;
 const usedItems = new WeakSet();
 
@@ -113,7 +121,34 @@ const waitForVideoMetadata = () => {
   });
 };
 
-const finishSegment = (endTime) => {
+const seekVideoTo = (time) =>
+  new Promise((resolve, reject) => {
+    const cleanup = () => {
+      video.removeEventListener("seeked", handleSeeked);
+      video.removeEventListener("error", handleError);
+    };
+    const handleSeeked = () => {
+      cleanup();
+      resolve();
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new Error("The background video could not be decoded."));
+    };
+
+    video.addEventListener("seeked", handleSeeked, { once: true });
+    video.addEventListener("error", handleError, { once: true });
+    video.currentTime = time;
+
+    if (!video.seeking) {
+      cleanup();
+      resolve();
+    }
+  });
+
+const finishSegment = (endTime, runId) => {
+  if (runId !== playbackRunId) return;
+
   cancelAnimationFrame(animationFrame);
   video.pause();
   video.currentTime = endTime;
@@ -122,13 +157,15 @@ const finishSegment = (endTime) => {
   experience.classList.remove("is-playing");
 };
 
-const watchSegment = (endTime) => {
+const watchSegment = (endTime, runId) => {
+  if (runId !== playbackRunId) return;
+
   if (video.currentTime >= endTime || video.ended) {
-    finishSegment(endTime);
+    finishSegment(endTime, runId);
     return;
   }
 
-  animationFrame = requestAnimationFrame(() => watchSegment(endTime));
+  animationFrame = requestAnimationFrame(() => watchSegment(endTime, runId));
 };
 
 const playNextSegment = async (image) => {
@@ -145,24 +182,32 @@ const playNextSegment = async (image) => {
   image.style.opacity = String(USED_ITEM_OPACITY);
   isPlayingSegment = true;
   experience.classList.add("is-playing");
+  const runId = ++playbackRunId;
 
   try {
     await waitForVideoMetadata();
+    if (runId !== playbackRunId) return;
 
     const videoEnd = Math.min(video.duration, playbackLimit);
     const startTime = nextSegmentStart;
     const endTime = Math.min(startTime + segmentDuration, videoEnd);
 
     if (startTime >= endTime) {
-      isPlayingSegment = false;
-      experience.classList.remove("is-playing");
+      finishSegment(startTime, runId);
       return;
     }
 
     video.currentTime = startTime;
     await video.play();
-    animationFrame = requestAnimationFrame(() => watchSegment(endTime));
+    if (runId !== playbackRunId) {
+      video.pause();
+      return;
+    }
+
+    animationFrame = requestAnimationFrame(() => watchSegment(endTime, runId));
   } catch (error) {
+    if (runId !== playbackRunId) return;
+
     cancelAnimationFrame(animationFrame);
     video.pause();
     isPlayingSegment = false;
@@ -170,6 +215,63 @@ const playNextSegment = async (image) => {
     console.error("Unable to play the next video segment:", error);
   }
 };
+
+const rewindPreviousSegment = async () => {
+  const runId = ++playbackRunId;
+  cancelAnimationFrame(animationFrame);
+  video.pause();
+  isPlayingSegment = true;
+  experience.classList.add("is-playing");
+
+  try {
+    await waitForVideoMetadata();
+    if (runId !== playbackRunId) return;
+
+    const startTime = Math.min(video.currentTime, playbackLimit);
+    const endTime = Math.max(0, startTime - segmentDuration);
+    if (startTime <= endTime) {
+      finishSegment(endTime, runId);
+      return;
+    }
+
+    const frameDuration = 1 / REVERSE_FRAME_RATE;
+    const frameInterval = 1000 / REVERSE_FRAME_RATE;
+
+    while (runId === playbackRunId && video.currentTime > endTime) {
+      const frameStart = performance.now();
+      const nextTime = Math.max(endTime, video.currentTime - frameDuration);
+      await seekVideoTo(nextTime);
+      if (runId !== playbackRunId) return;
+
+      const remainingInterval = frameInterval - (performance.now() - frameStart);
+      if (remainingInterval > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingInterval));
+      }
+    }
+
+    finishSegment(endTime, runId);
+  } catch (error) {
+    if (runId !== playbackRunId) return;
+
+    isPlayingSegment = false;
+    experience.classList.remove("is-playing");
+    console.error("Unable to rewind the background video:", error);
+  }
+};
+
+carousel.addEventListener("click", (event) => {
+  const resetButton = event.target.closest(".used-item-button");
+  if (!resetButton) return;
+
+  const tile = resetButton.closest(".item-tile");
+  const image = tile.querySelector(".item-image");
+  if (!usedItems.has(image)) return;
+
+  usedItems.delete(image);
+  tile.classList.remove("is-used");
+  image.style.removeProperty("opacity");
+  void rewindPreviousSegment();
+});
 
 const clearDrag = () => {
   if (!activeDrag) return;
