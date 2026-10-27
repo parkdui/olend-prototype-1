@@ -9,8 +9,9 @@
   font-weight: 400;
 
   --ink: #fffaf0;
-  --muted: rgb(255 250 240 / 62%);
-  --line: rgb(255 250 240 / 24%);
+  --muted: rgb(255 250 240 / 68%);
+  --line: rgb(255 250 240 / 42%);
+  --accent: #e8c79d;
 }
 
 * {
@@ -47,281 +48,148 @@ button {
   background: #171a18;
 }
 
-#app::after {
-  position: fixed;
-  z-index: 0;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgb(15 18 16 / 62%) 0%, rgb(15 18 16 / 17%) 42%, rgb(15 18 16 / 69%) 100%),
-    rgb(15 18 16 / 16%);
-  content: '';
-  pointer-events: none;
-}
-
 .experience {
   position: relative;
   z-index: 1;
   display: grid;
   width: min(100vw, 430px);
-  height: min(100svh, 177.78vw, 764px);
-  min-height: 540px;
-  padding: 34px 22px 22px;
-  grid-template-rows: auto auto minmax(110px, 1fr) auto;
-  gap: 26px;
-  aspect-ratio: 9 / 16;
+  height: min(100svh, 764px, 177.78vw);
+  min-height: min(540px, 100svh);
+  padding: 32px 22px 24px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 24px;
   overflow: hidden;
 }
 
-.intro {
-  padding-top: 5px;
+.brand {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
 }
 
-.eyebrow,
-.section-heading,
-.card-number,
-.drop-caption,
-.time-row {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.eyebrow {
-  margin: 0 0 14px;
-  color: #e8c79d;
-}
-
-h1 {
-  margin: 0;
-  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
-  font-size: clamp(38px, 11vw, 51px);
-  font-weight: 500;
-  letter-spacing: -0.075em;
-  line-height: 0.98;
-}
-
-.instructions {
-  max-width: 260px;
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
+.brand-logo {
+  display: block;
+  width: 146px;
+  height: auto;
+  object-fit: contain;
 }
 
 .carousel-section {
   min-width: 0;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  color: var(--ink);
-}
-
-.drag-hint {
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-}
-
-.carousel {
-  display: flex;
-  gap: 10px;
   margin: 0 -22px;
-  padding: 2px 22px 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.carousel::-webkit-scrollbar {
+.item-carousel {
+  display: flex;
+  gap: 12px;
+  padding: 0 22px 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.item-carousel::-webkit-scrollbar {
   display: none;
 }
 
-.moment-card {
-  position: relative;
-  display: flex;
-  width: 132px;
-  height: 126px;
-  flex: 0 0 132px;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 13px;
-  border: 1px solid rgb(255 255 255 / 20%);
-  border-radius: 3px;
-  color: #25241f;
-  text-align: left;
-  cursor: grab;
+.item-image {
+  display: block;
+  width: 142px;
+  height: 142px;
+  flex: 0 0 142px;
+  object-fit: contain;
   user-select: none;
-  -webkit-user-select: none;
-  touch-action: pan-x;
-  transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
+  -webkit-user-drag: none;
 }
 
-.moment-card[data-tone='sand'] {
-  background: #ddc3a2;
+.product-details {
+  padding-bottom: 1px;
 }
 
-.moment-card[data-tone='coral'] {
-  background: #cf8e75;
+.product-details h1 {
+  margin: 0;
+  font-size: clamp(24px, 7vw, 30px);
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  line-height: 1.15;
 }
 
-.moment-card[data-tone='blue'] {
-  background: #9aaca9;
+.product-price {
+  margin: 8px 0 20px;
+  color: var(--muted);
+  font-size: 15px;
+  letter-spacing: 0.025em;
 }
 
-.moment-card[data-tone='green'] {
-  background: #c3c9a4;
+.product-actions {
+  display: flex;
+  gap: 10px;
 }
 
-.moment-card:active {
-  cursor: grabbing;
+.button {
+  min-width: 0;
+  min-height: 48px;
+  flex: 1;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
-.moment-card:focus-visible {
-  outline: 2px solid #fffaf0;
+.button:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.moment-card.is-dragging {
-  opacity: 0.38;
+.button-secondary {
+  color: var(--ink);
+  background: transparent;
 }
 
-.card-number {
-  opacity: 0.65;
+.button-secondary:hover {
+  color: #171a18;
+  background: var(--ink);
 }
 
-.card-label {
-  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.06em;
+.button-primary {
+  color: #171a18;
+  background: var(--ink);
 }
 
-.card-mark {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  font-size: 14px;
-}
-
-.drag-preview {
-  position: fixed;
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0.96;
-  box-shadow: 0 16px 45px rgb(0 0 0 / 24%);
-  transform: rotate(-3deg) scale(1.04);
-}
-
-.drop-zone {
-  display: flex;
-  min-height: 110px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--line);
-  border-radius: 3px;
-  background: rgb(255 255 255 / 3%);
-  text-align: center;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
-}
-
-.drop-zone.is-target {
-  border-color: #e8c79d;
-  background: rgb(232 199 157 / 15%);
-  transform: scale(1.015);
-}
-
-.drop-zone.is-playing {
-  border-color: rgb(232 199 157 / 60%);
-}
-
-.drop-zone.is-complete {
-  border-color: rgb(255 250 240 / 15%);
-}
-
-.drop-icon {
-  display: grid;
-  width: 27px;
-  height: 27px;
-  margin-bottom: 9px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  color: #e8c79d;
-  font-size: 16px;
-  place-items: center;
-}
-
-.drop-zone p {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.drop-caption {
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 8px;
-  font-weight: 400;
-}
-
-.playback-status {
-  padding-top: 1px;
-}
-
-.status-row {
-  display: flex;
-  min-height: 16px;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.status-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #e8c79d;
-  box-shadow: 0 0 10px rgb(232 199 157 / 50%);
-}
-
-.timeline {
-  height: 1px;
-  margin: 10px 0 7px;
-  background: rgb(255 250 240 / 30%);
-}
-
-.timeline span {
-  display: block;
-  width: 0;
-  height: 100%;
-  background: #e8c79d;
-  transition: width 100ms linear;
-}
-
-.time-row {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 8px;
-  letter-spacing: 0.12em;
+.button-primary:hover {
+  border-color: var(--accent);
+  background: var(--accent);
 }
 
 @media (max-height: 700px) {
   .experience {
-    min-height: 0;
-    padding-top: 22px;
-    padding-bottom: 15px;
-    grid-template-rows: auto auto minmax(85px, 1fr) auto;
+    padding-top: 20px;
+    padding-bottom: 16px;
     gap: 16px;
   }
 
-  .moment-card {
-    height: 108px;
+  .brand-logo {
+    width: 132px;
+  }
+
+  .item-image {
+    width: 120px;
+    height: 120px;
+    flex-basis: 120px;
+  }
+
+  .product-price {
+    margin-bottom: 14px;
+  }
+
+  .button {
+    min-height: 44px;
   }
 }
 
