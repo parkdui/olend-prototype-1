@@ -2,6 +2,7 @@ import "./style.css";
 import backgroundVideo from "./assets/test_kling4_1.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
+import usedItemIcon from "./assets/icons/Cross.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
 import item003 from "./assets/items/item003.png";
@@ -36,12 +37,15 @@ document.querySelector("#app").innerHTML = `
         ${items
           .map(
             (item, index) => `
-              <img
-                class="item-image"
-                src="${item}"
-                alt="ONA SOFT BAG style ${index + 1}"
-                draggable="false"
-              />
+              <div class="item-tile">
+                <img
+                  class="item-image"
+                  src="${item}"
+                  alt="ONA SOFT BAG style ${index + 1}"
+                  draggable="false"
+                />
+                <img class="used-item-icon" src="${usedItemIcon}" alt="Already used" />
+              </div>
             `,
           )
           .join("")}
@@ -78,10 +82,12 @@ video.addEventListener("error", () => {
 
 const segmentDuration = 1;
 const playbackLimit = 10;
+const USED_ITEM_OPACITY = 0.4;
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
 let activeDrag = null;
+const usedItems = new WeakSet();
 
 const waitForVideoMetadata = () => {
   if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
@@ -125,9 +131,18 @@ const watchSegment = (endTime) => {
   animationFrame = requestAnimationFrame(() => watchSegment(endTime));
 };
 
-const playNextSegment = async () => {
-  if (isPlayingSegment || nextSegmentStart >= playbackLimit) return;
+const playNextSegment = async (image) => {
+  if (
+    isPlayingSegment ||
+    nextSegmentStart >= playbackLimit ||
+    usedItems.has(image)
+  ) {
+    return;
+  }
 
+  usedItems.add(image);
+  image.closest(".item-tile").classList.add("is-used");
+  image.style.opacity = String(USED_ITEM_OPACITY);
   isPlayingSegment = true;
   experience.classList.add("is-playing");
 
@@ -182,7 +197,8 @@ carousel.addEventListener("pointerdown", (event) => {
     !image ||
     event.button !== 0 ||
     isPlayingSegment ||
-    nextSegmentStart >= playbackLimit
+    nextSegmentStart >= playbackLimit ||
+    usedItems.has(image)
   ) {
     return;
   }
@@ -240,11 +256,12 @@ document.addEventListener("pointerup", (event) => {
     event.clientX <= experienceBounds.right &&
     event.clientY > carouselBounds.bottom &&
     event.clientY <= experienceBounds.bottom;
+  const droppedImage = activeDrag.image;
 
   clearDrag();
 
   if (droppedBelowCarousel) {
-    void playNextSegment();
+    void playNextSegment(droppedImage);
   }
 });
 
