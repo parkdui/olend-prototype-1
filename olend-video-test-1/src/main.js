@@ -100,8 +100,50 @@ document.querySelector("#app").innerHTML = `
 `;
 
 const video = document.querySelector(".background-video");
+const app = document.querySelector("#app");
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
+let lastTouchTap = null;
+
+const enterFullscreen = async () => {
+  if (document.fullscreenElement) return;
+
+  const fullscreenTarget = app.requestFullscreen
+    ? app
+    : document.documentElement;
+  if (!fullscreenTarget.requestFullscreen) {
+    console.error("Fullscreen mode is not supported by this browser.");
+    return;
+  }
+
+  try {
+    await fullscreenTarget.requestFullscreen();
+  } catch (error) {
+    console.error("Unable to enter fullscreen mode:", error);
+  }
+};
+
+app.addEventListener("dblclick", () => {
+  void enterFullscreen();
+});
+
+app.addEventListener("pointerup", (event) => {
+  if (event.pointerType !== "touch" || activeDrag) return;
+
+  const now = performance.now();
+  const tap = { x: event.clientX, y: event.clientY, time: now };
+  if (
+    lastTouchTap &&
+    now - lastTouchTap.time < 350 &&
+    Math.hypot(tap.x - lastTouchTap.x, tap.y - lastTouchTap.y) < 40
+  ) {
+    lastTouchTap = null;
+    void enterFullscreen();
+    return;
+  }
+
+  lastTouchTap = tap;
+});
 
 video.addEventListener("loadedmetadata", () => {
   video.pause();
