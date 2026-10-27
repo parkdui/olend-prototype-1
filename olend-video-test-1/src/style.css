@@ -182,7 +182,7 @@ button {
 }
 
 .button-secondary:hover {
-  color: #171a18;
+  color: #fff;
   background: var(--ink);
 }
 
