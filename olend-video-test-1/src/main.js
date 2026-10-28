@@ -321,11 +321,19 @@ const waitForVideoMetadata = () => {
 
 const seekVideoTo = (time) =>
   new Promise((resolve, reject) => {
+    const seekTolerance = 0.02;
+    if (Math.abs(video.currentTime - time) <= seekTolerance) {
+      resolve();
+      return;
+    }
+
     const cleanup = () => {
       video.removeEventListener("seeked", handleSeeked);
       video.removeEventListener("error", handleError);
     };
     const handleSeeked = () => {
+      if (Math.abs(video.currentTime - time) > seekTolerance) return;
+
       cleanup();
       resolve();
     };
@@ -333,12 +341,10 @@ const seekVideoTo = (time) =>
       cleanup();
       reject(new Error("The background video could not be decoded."));
     };
-
-    video.addEventListener("seeked", handleSeeked, { once: true });
-    video.addEventListener("error", handleError, { once: true });
+    video.addEventListener("seeked", handleSeeked);
+    video.addEventListener("error", handleError);
     video.currentTime = time;
-
-    if (!video.seeking) {
+    if (!video.seeking && Math.abs(video.currentTime - time) <= seekTolerance) {
       cleanup();
       resolve();
     }
