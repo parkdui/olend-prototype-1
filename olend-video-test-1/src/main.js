@@ -4,8 +4,12 @@ import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import usedItemIcon from "./assets/icons/Cross.svg";
-import recommendBigIcon from ".assets/icons/B_bag.svg";
-import recommendSmallIcon from ".assets/icons/S_bag.svg";
+import recommendBigIcon from "./assets/icons/B_bag.svg";
+import recommendSmallIcon from "./assets/icons/S_bag.svg";
+import smallDumplingImage from "./assets/popup-imgs/s_dumpling_bag.png";
+import smallMicroOnaImage from "./assets/popup-imgs/s_micro_ona_soft_bag.png";
+import largeBrooklynImage from "./assets/popup-imgs/b_brooklyn_bag.png";
+import largeOnaImage from "./assets/popup-imgs/b_large_ona_soft_bag.png";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
 import item003 from "./assets/items/item003.png";
@@ -73,6 +77,26 @@ const ITEM_NAMES = {
 const app = document.querySelector("#app");
 const isDumplingPage = app.dataset.product === "dumpling";
 const productName = isDumplingPage ? "Dumpling Bag" : "Ona Soft Bag";
+const recommendationImages = isDumplingPage
+  ? [largeOnaImage, largeBrooklynImage]
+  : [smallMicroOnaImage, smallDumplingImage];
+const recommendationCopy = isDumplingPage
+  ? {
+      heading: "Not enough room for your item.",
+      subheading: "These might fit better.",
+      firstProductName: "Large Ona Soft Bag",
+      firstProductPrice: "CHF 102",
+      secondProductName: "Brooklyn Bag",
+      secondProductPrice: "CHF 125",
+    }
+  : {
+      heading: "Your bag’s a bit roomy.",
+      subheading: "These might be a better fit.",
+      firstProductName: "Micro Ona Soft Bag",
+      firstProductPrice: "CHF 83",
+      secondProductName: "Dumpling Bag",
+      secondProductPrice: "CHF 125",
+    };
 const ITEM_PLAY_DURATION = isDumplingPage
   ? DUMPLING_ITEM_PLAY_DURATION
   : ONA_ITEM_PLAY_DURATION;
@@ -135,39 +159,34 @@ app.innerHTML = `
   </main>
   <dialog class="recommendation-dialog" aria-labelledby="recommendation-title">
     <div class="recommendation-heading">
-      <svg class="recommendation-icon" viewBox="0 0 40 48" fill="none" aria-hidden="true">
-        <path d="M10 15h20l3.2 25.1a4 4 0 0 1-4 4.5H10.8a4 4 0 0 1-4-4.5L10 15Z" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M14 16V11a6 6 0 0 1 12 0v5M20 24v8M20 37h.02" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
-      </svg>
-      <h2 id="recommendation-title">Your bag’s a bit roomy.<br />These might be a better fit.</h2>
+      <img
+        class="recommendation-icon"
+        src="${isDumplingPage ? recommendSmallIcon : recommendBigIcon}"
+        alt=""
+        aria-hidden="true"
+      />
+      <h2 id="recommendation-title">${recommendationCopy.heading}<br />${recommendationCopy.subheading}</h2>
     </div>
     <div class="recommendation-products">
       <article class="recommendation-product">
         <div class="recommendation-image">
-          <svg viewBox="0 0 300 210" role="img" aria-label="Illustration of a black Micro Ona Soft Bag">
-            <path d="M115 153C125 95 120 18 153 13c37-6 28 99 42 140" fill="none" stroke="#252525" stroke-width="8" stroke-linecap="round"/>
-            <path d="M115 153c-6 7-11 13-16 18m96-18 12 18" fill="none" stroke="#252525" stroke-width="5" stroke-linecap="round"/>
-            <path d="m105 159 10 5 4 24-9 5-11-8 3-17 3-9Zm90 0-10 5-4 24 9 5 11-8-3-17-3-9Z" fill="#252525"/>
-            <path d="m111 167 78-1 8 28-14 8-65-1-15-9 8-25Z" fill="#292929" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M136 169c2-13 9-21 17-21s15 8 17 21" fill="none" stroke="#242424" stroke-width="7" stroke-linecap="round"/>
-            <path d="m118 176 63-1m-59 8 56-1m-49 8 42-1" stroke="#464646" stroke-width="1.5"/>
-          </svg>
+          <img
+            src="${recommendationImages[0]}"
+            alt="${recommendationCopy.firstProductName}"
+          />
         </div>
-        <h3>Micro Ona Soft Bag</h3>
-        <p>CHF 83</p>
+        <h3>${recommendationCopy.firstProductName}</h3>
+        <p>${recommendationCopy.firstProductPrice}</p>
       </article>
       <article class="recommendation-product">
         <div class="recommendation-image">
-          <svg viewBox="0 0 300 210" role="img" aria-label="Illustration of a red Brooklyn Bag">
-            <path d="M118 152c12-37 12-135 35-137 24-2 22 101 38 139" fill="none" stroke="#9e2939" stroke-width="7" stroke-linecap="round"/>
-            <path d="m119 151-18 48m88-48 18 48" fill="none" stroke="#9e2939" stroke-width="5" stroke-linecap="round"/>
-            <path d="M115 158c13 2 17 9 24 4 7-5 10-10 16-8 8 3 10 8 18 7 8-1 11-6 18-4l8 7-8 28c-24 13-58 13-82-1l-4-24 10-9Z" fill="#a52b3c" stroke="#82202f" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M122 163c5 11 10 16 16 19m6-22c0 11 4 18 10 23m9-23c-2 11-1 18 4 24m10-26c2 10 6 15 11 19" fill="none" stroke="#d16b77" stroke-width="2" stroke-linecap="round"/>
-            <path d="m114 166-10 4 10 7m82-10 10 4-10 7" fill="none" stroke="#82202f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <img
+            src="${recommendationImages[1]}"
+            alt="${recommendationCopy.secondProductName}"
+          />
         </div>
-        <h3>Brooklyn Bag</h3>
-        <p>CHF 125</p>
+        <h3>${recommendationCopy.secondProductName}</h3>
+        <p>${recommendationCopy.secondProductPrice}</p>
       </article>
     </div>
     <button class="recommendation-explore" type="button">Explore more</button>
