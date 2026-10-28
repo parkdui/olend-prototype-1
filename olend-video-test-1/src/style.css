@@ -1,5 +1,7 @@
 :root {
-  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
   color: #fffaf0;
   background: #171a18;
   font-synthesis: none;
@@ -182,11 +184,11 @@ button {
 
 .dropdown-indicator {
   position: absolute;
-  top: 60%;
+  top: 66%;
   left: 50%;
   display: flex;
-  width: 80%;
-  min-height: 64px;
+  width: 60%;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 8px 16px;
@@ -207,7 +209,8 @@ button {
 .dropdown-indicator-text {
   margin: 0;
   color: #fff;
-  font-size: clamp(14px, 4.5vw, 24px);
+  /* font-size: clamp(14px, 4.5vw, 24px); */
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.2;
 }
@@ -228,7 +231,7 @@ button {
 .product-details h1 {
   margin: 0;
   font-size: clamp(24px, 7vw, 30px);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.015em;
   line-height: 1.15;
   color: #000;
@@ -257,7 +260,6 @@ button {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
   cursor: pointer;
   transition: background-color 160ms ease, color 160ms ease;
 }
@@ -321,6 +323,8 @@ button {
 
 .recommendation-dialog::backdrop {
   background: rgb(0 0 0 / 40%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   animation: recommendation-backdrop-enter 320ms ease-out both;
 }
 

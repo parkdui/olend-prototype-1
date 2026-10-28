@@ -152,7 +152,7 @@ app.innerHTML = `
       <div class="product-actions">
         <button class="button button-primary add-to-bag-button" type="button">
           <img class="button-icon" src="${shoppingBagIcon}" alt="" aria-hidden="true" />
-          Add to bag
+          Add to Bag
         </button>
       </div>
     </section>
