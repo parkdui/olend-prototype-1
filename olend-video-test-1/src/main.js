@@ -1,7 +1,10 @@
 import "./style.css";
 import onaBackgroundVideo from "./assets/ona_3.mp4";
 import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
+import hamburgerIcon from "./assets/icons/Top_hamburger_menu.svg";
 import logo from "./assets/Olend_logo_main.png";
+import searchIcon from "./assets/icons/Top_search.svg";
+import cartIcon from "./assets/icons/Top_cart.svg";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import usedItemIcon from "./assets/icons/Cross.svg";
 import recommendBigIcon from "./assets/icons/B_bag.svg";
@@ -9,7 +12,7 @@ import recommendSmallIcon from "./assets/icons/S_bag.svg";
 import smallDumplingImage from "./assets/popup-imgs/s_dumpling_bag.png";
 import smallMicroOnaImage from "./assets/popup-imgs/s_micro_ona_soft_bag.png";
 import largeBrooklynImage from "./assets/popup-imgs/b_brooklyn_bag.png";
-import largeOnaImage from "./assets/popup-imgs/b_large_ona_soft_bag.png";
+import largeOnaImage from "./assets/popup-imgs/b_ona_soft_bag.png";
 import explodingWarningText from "./assets/exploding_warning_txt.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
@@ -70,23 +73,23 @@ const DRAG_ITEM_SCALES = {
 };
 
 const ONA_ITEM_PLAY_DURATION = {
-  item001: 0.4,
-  item002: 0.6,
+  item001: 0.2,
+  item002: 0.2,
   item003: 1,
   item004: 3,
   item005: 1.5,
   item006: 1,
-  item007: 0.5,
+  item007: 0.2,
   item008: 2,
-  item009: 0.4,
-  item010: 0.4,
-  item011: 0.4,
-  item012: 0.4,
-  item013: 0.4,
+  item009: 0.5,
+  item010: 0.5,
+  item011: 0.5,
+  item012: 1,
+  item013: 0.6,
   item014: 0.4,
   item015: 0.4,
-  item016: 0.4,
-  item017: 0.4,
+  item016: 0.1,
+  item017: 0.8,
 };
 
 const DUMPLING_ITEM_PLAY_DURATION = {
@@ -132,6 +135,7 @@ const ITEM_NAMES = {
 const app = document.querySelector("#app");
 const isDumplingPage = app.dataset.product === "dumpling";
 const productName = isDumplingPage ? "Dumpling Bag" : "Ona Soft Bag";
+const productPrice = isDumplingPage ? 96 : 90;
 const recommendationImages = isDumplingPage
   ? [largeOnaImage, largeBrooklynImage]
   : [smallMicroOnaImage, smallDumplingImage];
@@ -139,7 +143,7 @@ const recommendationCopy = isDumplingPage
   ? {
       heading: "Not enough room for your item.",
       subheading: "These might fit better.",
-      firstProductName: "Large Ona Soft Bag",
+      firstProductName: "Ona Soft Bag",
       firstProductPrice: "CHF 102",
       secondProductName: "Brooklyn Bag",
       secondProductPrice: "CHF 125",
@@ -166,7 +170,12 @@ app.innerHTML = `
   </video>
   <main class="experience">
     <header class="brand">
+      <img class="top-button-icon" src="${hamburgerIcon}" alt="" aria-hidden="true" />
       <img class="brand-logo" src="${logo}" alt="Olend" />
+      <div class="right-icons">
+        <img class="top-button-icon" src="${searchIcon}" alt="" aria-hidden="true" />
+        <img class="top-button-icon" src="${cartIcon}" alt="" aria-hidden="true" />
+      </div>
     </header>
 
     <section class="carousel-section" aria-label="Bag styles">
@@ -203,11 +212,13 @@ app.innerHTML = `
 
     <section class="product-details" aria-labelledby="product-name">
       <h1 id="product-name">${productName}</h1>
-      <p class="product-price">CHF 90</p>
+      <div class="product-price">
+        <p class="product-price-chf">CHF</p>
+        <p class="product-price-amount">${productPrice}</p>
+      </div>
       <div class="product-actions">
         <button class="button button-primary add-to-bag-button" type="button">
-          <img class="button-icon" src="${shoppingBagIcon}" alt="" aria-hidden="true" />
-          Add to Bag
+          ADD TO CART
         </button>
       </div>
     </section>
@@ -223,6 +234,7 @@ app.innerHTML = `
       <h2 id="recommendation-title">${recommendationCopy.heading}<br />${recommendationCopy.subheading}</h2>
     </div>
     <div class="recommendation-products">
+      ${isDumplingPage ? '<a class="recommendation-product-link" href="./index.html">' : ""}
       <article class="recommendation-product">
         <div class="recommendation-image">
           <img
@@ -233,6 +245,7 @@ app.innerHTML = `
         <h3>${recommendationCopy.firstProductName}</h3>
         <p>${recommendationCopy.firstProductPrice}</p>
       </article>
+      ${isDumplingPage ? "</a>" : ""}
       ${isDumplingPage ? "" : '<a class="recommendation-product-link" href="./dumpling.html">'}
       <article class="recommendation-product">
         <div class="recommendation-image">
@@ -246,17 +259,21 @@ app.innerHTML = `
       </article>
       ${isDumplingPage ? "" : "</a>"}
     </div>
-    <button class="recommendation-explore" type="button">Explore more</button>
+    <button class="recommendation-explore" type="button">EXPLORE MORE</button>
   </dialog>
   <dialog class="exploding-warning-dialog" aria-label="Playback warning">
+    <button
+      class="exploding-warning-close"
+      type="button"
+      aria-label="Close playback warning"
+    >
+      <img src="${usedItemIcon}" alt="" aria-hidden="true" />
+    </button>
     <img
       class="exploding-warning-text"
       src="${explodingWarningText}"
       alt="Your bag is exploding!"
     />
-    <button class="recommendation-explore exploding-warning-okay" type="button">
-      Okay
-    </button>
   </dialog>
 `;
 
@@ -265,10 +282,14 @@ const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
 const dropdownIndicator = document.querySelector(".dropdown-indicator");
 const recommendationDialog = document.querySelector(".recommendation-dialog");
-const explodingWarningDialog = document.querySelector(".exploding-warning-dialog");
+const explodingWarningDialog = document.querySelector(
+  ".exploding-warning-dialog",
+);
 const addToBagButton = document.querySelector(".add-to-bag-button");
 const exploreMoreButton = document.querySelector(".recommendation-explore");
-const explodingWarningOkayButton = document.querySelector(".exploding-warning-okay");
+const explodingWarningCloseButton = document.querySelector(
+  ".exploding-warning-close",
+);
 let lastTouchTap = null;
 
 const enterFullscreen = async () => {
@@ -323,9 +344,11 @@ video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
 });
 
-const REVERSE_FRAME_RATE = 25;
+const REVERSE_FRAME_RATE = 12;
 const USED_ITEM_OPACITY = 0.4;
 const RECOMMENDATION_PLAY_DURATION_LIMIT = 1.7;
+const FAST_PLAYBACK_MIN_DURATION = 1;
+const FAST_PLAYBACK_RATE = 5;
 const USED_ITEMS_STORAGE_KEY = "olend-used-items";
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
@@ -336,20 +359,12 @@ const usedItems = new WeakSet();
 const playedItemDurations = new WeakMap();
 let usedItemOrder = [];
 
-const updateProductPress = (playbackTime = nextSegmentStart) => {
-  const threshold = playbackLimit * 0.8;
-  const progress = Math.min(
-    1,
-    Math.max(0, (playbackTime - threshold) / (playbackLimit - threshold)),
-  );
-  experience.style.setProperty(
-    "--product-press-scale-x",
-    String(1 + progress * 0.2),
-  );
-  experience.style.setProperty(
-    "--product-press-scale-y",
-    String(1 - progress * 0.35),
-  );
+const setUsedItemButtonsDisabled = (disabled) => {
+  carousel
+    .querySelectorAll(".used-item-button")
+    .forEach((button) => {
+      button.disabled = disabled;
+    });
 };
 
 const saveUsedItems = () => {
@@ -419,7 +434,6 @@ const restoreUsedItems = () => {
   }
 
   nextSegmentStart = Math.min(restoredPlaybackTime, playbackLimit);
-  updateProductPress(nextSegmentStart);
   if (savedItems.length > 0) {
     dropdownIndicator.classList.add("is-hidden");
   }
@@ -458,7 +472,7 @@ exploreMoreButton.addEventListener("click", () => {
   recommendationDialog.close();
 });
 
-explodingWarningOkayButton.addEventListener("click", () => {
+explodingWarningCloseButton.addEventListener("click", () => {
   explodingWarningDialog.close();
 });
 
@@ -539,10 +553,11 @@ const finishSegment = (
 
   cancelAnimationFrame(animationFrame);
   video.pause();
+  video.playbackRate = 1;
   video.currentTime = endTime;
   nextSegmentStart = endTime;
-  updateProductPress(endTime);
   isPlayingSegment = false;
+  setUsedItemButtonsDisabled(false);
   experience.classList.remove("is-playing");
   if (showRecommendationAfter) {
     showRecommendation();
@@ -559,7 +574,6 @@ const watchSegment = (
   showExplodingWarningAfter,
 ) => {
   if (runId !== playbackRunId) return;
-  updateProductPress(video.currentTime);
 
   if (video.currentTime >= endTime || video.ended) {
     finishSegment(
@@ -613,6 +627,7 @@ const playNextSegment = async (image) => {
   usedItemOrder.push(itemId);
   saveUsedItems();
   isPlayingSegment = true;
+  setUsedItemButtonsDisabled(true);
   experience.classList.add("is-playing");
   const runId = ++playbackRunId;
 
@@ -640,12 +655,16 @@ const playNextSegment = async (image) => {
       return false;
     }
 
-    playedItemDurations.set(image, endTime - startTime);
+    const segmentDuration = endTime - startTime;
+    playedItemDurations.set(image, segmentDuration);
     saveUsedItems();
     video.currentTime = startTime;
+    video.playbackRate =
+      segmentDuration >= FAST_PLAYBACK_MIN_DURATION ? FAST_PLAYBACK_RATE : 1;
     await video.play();
     if (runId !== playbackRunId) {
       video.pause();
+      video.playbackRate = 1;
       return false;
     }
 
@@ -663,7 +682,9 @@ const playNextSegment = async (image) => {
 
     cancelAnimationFrame(animationFrame);
     video.pause();
+    video.playbackRate = 1;
     isPlayingSegment = false;
+    setUsedItemButtonsDisabled(false);
     experience.classList.remove("is-playing");
     console.error("Unable to play the next video segment:", error);
     return false;
@@ -674,7 +695,9 @@ const rewindPreviousSegment = async (playDuration) => {
   const runId = ++playbackRunId;
   cancelAnimationFrame(animationFrame);
   video.pause();
+  video.playbackRate = 1;
   isPlayingSegment = true;
+  setUsedItemButtonsDisabled(true);
   experience.classList.add("is-playing");
 
   try {
@@ -688,7 +711,9 @@ const rewindPreviousSegment = async (playDuration) => {
       return;
     }
 
-    const frameDuration = 1 / REVERSE_FRAME_RATE;
+    const reversePlaybackRate =
+      playDuration >= FAST_PLAYBACK_MIN_DURATION ? FAST_PLAYBACK_RATE : 1;
+    const frameDuration = reversePlaybackRate / REVERSE_FRAME_RATE;
     const frameInterval = 1000 / REVERSE_FRAME_RATE;
 
     while (runId === playbackRunId && video.currentTime > endTime) {
@@ -696,7 +721,6 @@ const rewindPreviousSegment = async (playDuration) => {
       const nextTime = Math.max(endTime, video.currentTime - frameDuration);
       await seekVideoTo(nextTime);
       if (runId !== playbackRunId) return;
-      updateProductPress(video.currentTime);
 
       const remainingInterval =
         frameInterval - (performance.now() - frameStart);
@@ -710,6 +734,7 @@ const rewindPreviousSegment = async (playDuration) => {
     if (runId !== playbackRunId) return;
 
     isPlayingSegment = false;
+    setUsedItemButtonsDisabled(false);
     experience.classList.remove("is-playing");
     console.error("Unable to rewind the background video:", error);
   }
@@ -717,7 +742,7 @@ const rewindPreviousSegment = async (playDuration) => {
 
 carousel.addEventListener("click", (event) => {
   const resetButton = event.target.closest(".used-item-button");
-  if (!resetButton) return;
+  if (!resetButton || isPlayingSegment) return;
 
   const tile = resetButton.closest(".item-tile");
   const image = tile.querySelector(".item-image");
