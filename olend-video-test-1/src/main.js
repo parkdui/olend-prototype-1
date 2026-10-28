@@ -1,5 +1,5 @@
 import "./style.css";
-import onaBackgroundVideo from "./assets/ona_2.mp4";
+import onaBackgroundVideo from "./assets/ona_3.mp4";
 import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
