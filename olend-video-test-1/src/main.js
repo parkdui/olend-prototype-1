@@ -1,4 +1,5 @@
 import "./style.css";
+import "./frame.js";
 import onaBackgroundVideo from "./assets/ona_3.mp4";
 import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
 import hamburgerIcon from "./assets/icons/Top_hamburger_menu.svg";
