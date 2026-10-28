@@ -231,6 +231,10 @@ button {
 
 .product-details h1 {
   margin: 0;
+  transform: scaleX(var(--product-press-scale-x, 1))
+    scaleY(var(--product-press-scale-y, 1));
+  transform-origin: left bottom;
+  transition: transform 120ms linear;
   font-size: clamp(24px, 7vw, 30px);
   font-weight: 400;
   letter-spacing: 0.015em;
@@ -240,6 +244,10 @@ button {
 
 .product-price {
   margin: 8px 0 20px;
+  transform: scaleX(var(--product-press-scale-x, 1))
+    scaleY(var(--product-press-scale-y, 1));
+  transform-origin: left top;
+  transition: transform 120ms linear;
   color: var(--muted);
   font-size: 15px;
   letter-spacing: 0.025em;
@@ -304,9 +312,9 @@ button {
   background: rgba(255,255,255, 0.2);
 }
 
-.recommendation-dialog {
+.recommendation-dialog,
+.exploding-warning-dialog {
   width: 90vw;
-  /* height: 54svh; */
   max-width: none;
   max-height: none;
   overflow: visible;
@@ -318,15 +326,27 @@ button {
   font-family: inherit;
 }
 
-.recommendation-dialog[open] {
+.recommendation-dialog[open],
+.exploding-warning-dialog[open] {
   animation: recommendation-dialog-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.recommendation-dialog::backdrop {
+.recommendation-dialog::backdrop,
+.exploding-warning-dialog::backdrop {
   background: rgb(0 0 0 / 40%);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   animation: recommendation-backdrop-enter 320ms ease-out both;
+}
+
+.exploding-warning-text {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.exploding-warning-okay {
+  margin-top: 20px;
 }
 
 @keyframes recommendation-dialog-enter {

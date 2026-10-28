@@ -10,6 +10,7 @@ import smallDumplingImage from "./assets/popup-imgs/s_dumpling_bag.png";
 import smallMicroOnaImage from "./assets/popup-imgs/s_micro_ona_soft_bag.png";
 import largeBrooklynImage from "./assets/popup-imgs/b_brooklyn_bag.png";
 import largeOnaImage from "./assets/popup-imgs/b_large_ona_soft_bag.png";
+import explodingWarningText from "./assets/exploding_warning_txt.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
 import item003 from "./assets/items/item003.png";
@@ -18,6 +19,15 @@ import item005 from "./assets/items/item005.png";
 import item006 from "./assets/items/item006.png";
 import item007 from "./assets/items/item007.png";
 import item008 from "./assets/items/item008.png";
+import item009 from "./assets/items/item009.png";
+import item010 from "./assets/items/item010.png";
+import item011 from "./assets/items/item011.png";
+import item012 from "./assets/items/item012.png";
+import item013 from "./assets/items/item013.png";
+import item014 from "./assets/items/item014.png";
+import item015 from "./assets/items/item015.png";
+import item016 from "./assets/items/item016.png";
+import item017 from "./assets/items/item017.png";
 
 const items = [
   { id: "item001", src: item001 },
@@ -28,6 +38,15 @@ const items = [
   { id: "item006", src: item006 },
   { id: "item007", src: item007 },
   { id: "item008", src: item008 },
+  { id: "item009", src: item009 },
+  { id: "item010", src: item010 },
+  { id: "item011", src: item011 },
+  { id: "item012", src: item012 },
+  { id: "item013", src: item013 },
+  { id: "item014", src: item014 },
+  { id: "item015", src: item015 },
+  { id: "item016", src: item016 },
+  { id: "item017", src: item017 },
 ];
 
 const DRAG_ITEM_SCALES = {
@@ -39,6 +58,15 @@ const DRAG_ITEM_SCALES = {
   item006: 1.5,
   item007: 0.8,
   item008: 2.8,
+  item009: 1,
+  item010: 1,
+  item011: 1,
+  item012: 1,
+  item013: 1,
+  item014: 1,
+  item015: 1,
+  item016: 1,
+  item017: 1,
 };
 
 const ONA_ITEM_PLAY_DURATION = {
@@ -50,6 +78,15 @@ const ONA_ITEM_PLAY_DURATION = {
   item006: 1,
   item007: 0.5,
   item008: 2,
+  item009: 0.4,
+  item010: 0.4,
+  item011: 0.4,
+  item012: 0.4,
+  item013: 0.4,
+  item014: 0.4,
+  item015: 0.4,
+  item016: 0.4,
+  item017: 0.4,
 };
 
 const DUMPLING_ITEM_PLAY_DURATION = {
@@ -61,6 +98,15 @@ const DUMPLING_ITEM_PLAY_DURATION = {
   item006: 2,
   item007: 0.7,
   item008: 3,
+  item009: 0.6,
+  item010: 0.6,
+  item011: 0.6,
+  item012: 0.6,
+  item013: 0.6,
+  item014: 0.6,
+  item015: 0.6,
+  item016: 0.6,
+  item017: 0.6,
 };
 
 const ITEM_NAMES = {
@@ -72,6 +118,15 @@ const ITEM_NAMES = {
   item006: "Phone",
   item007: "Lipstick",
   item008: "Notebook",
+  item009: "Power adapter",
+  item010: "Coffee cup",
+  item011: "Cap",
+  item012: "Chocolate",
+  item013: "Cigarettes",
+  item014: "Umbrella",
+  item015: "Sunglasses",
+  item016: "Candy",
+  item017: "Lunch box",
 };
 
 const app = document.querySelector("#app");
@@ -193,6 +248,16 @@ app.innerHTML = `
     </div>
     <button class="recommendation-explore" type="button">Explore more</button>
   </dialog>
+  <dialog class="exploding-warning-dialog" aria-label="Playback warning">
+    <img
+      class="exploding-warning-text"
+      src="${explodingWarningText}"
+      alt="Your bag is exploding!"
+    />
+    <button class="recommendation-explore exploding-warning-okay" type="button">
+      Okay
+    </button>
+  </dialog>
 `;
 
 const video = document.querySelector(".background-video");
@@ -200,8 +265,10 @@ const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
 const dropdownIndicator = document.querySelector(".dropdown-indicator");
 const recommendationDialog = document.querySelector(".recommendation-dialog");
+const explodingWarningDialog = document.querySelector(".exploding-warning-dialog");
 const addToBagButton = document.querySelector(".add-to-bag-button");
 const exploreMoreButton = document.querySelector(".recommendation-explore");
+const explodingWarningOkayButton = document.querySelector(".exploding-warning-okay");
 let lastTouchTap = null;
 
 const enterFullscreen = async () => {
@@ -246,7 +313,10 @@ app.addEventListener("pointerup", (event) => {
 
 video.addEventListener("loadedmetadata", () => {
   video.pause();
-  video.currentTime = 0;
+  const videoDuration = Number.isFinite(video.duration)
+    ? video.duration
+    : nextSegmentStart;
+  video.currentTime = Math.min(nextSegmentStart, videoDuration, playbackLimit);
 });
 
 video.addEventListener("error", () => {
@@ -256,6 +326,7 @@ video.addEventListener("error", () => {
 const REVERSE_FRAME_RATE = 25;
 const USED_ITEM_OPACITY = 0.4;
 const RECOMMENDATION_PLAY_DURATION_LIMIT = 1.7;
+const USED_ITEMS_STORAGE_KEY = "olend-used-items";
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
@@ -263,6 +334,98 @@ let playbackRunId = 0;
 let activeDrag = null;
 const usedItems = new WeakSet();
 const playedItemDurations = new WeakMap();
+let usedItemOrder = [];
+
+const updateProductPress = (playbackTime = nextSegmentStart) => {
+  const threshold = playbackLimit * 0.8;
+  const progress = Math.min(
+    1,
+    Math.max(0, (playbackTime - threshold) / (playbackLimit - threshold)),
+  );
+  experience.style.setProperty(
+    "--product-press-scale-x",
+    String(1 + progress * 0.2),
+  );
+  experience.style.setProperty(
+    "--product-press-scale-y",
+    String(1 - progress * 0.35),
+  );
+};
+
+const saveUsedItems = () => {
+  const savedItems = usedItemOrder.flatMap((itemId) => {
+    const tile = [...carousel.querySelectorAll(".item-tile")].find(
+      (candidate) => candidate.dataset.itemId === itemId,
+    );
+    if (!tile?.classList.contains("is-used")) return [];
+
+    const image = tile.querySelector(".item-image");
+    return [
+      {
+        id: itemId,
+        duration: playedItemDurations.get(image) ?? ITEM_PLAY_DURATION[itemId],
+      },
+    ];
+  });
+
+  try {
+    sessionStorage.setItem(USED_ITEMS_STORAGE_KEY, JSON.stringify(savedItems));
+  } catch (error) {
+    console.error("Unable to save used items for page navigation:", error);
+  }
+};
+
+const restoreUsedItems = () => {
+  let savedItems;
+  try {
+    const serializedItems = sessionStorage.getItem(USED_ITEMS_STORAGE_KEY);
+    savedItems = serializedItems ? JSON.parse(serializedItems) : [];
+  } catch (error) {
+    console.error("Unable to restore used items from page navigation:", error);
+    return;
+  }
+
+  if (!Array.isArray(savedItems)) {
+    console.error("Saved used items must be an array.");
+    return;
+  }
+
+  let restoredPlaybackTime = 0;
+  for (const savedItem of savedItems) {
+    if (!savedItem || !ITEM_NAMES[savedItem.id]) {
+      console.error("Ignoring an invalid saved used item:", savedItem);
+      continue;
+    }
+
+    const tile = [...carousel.querySelectorAll(".item-tile")].find(
+      (candidate) => candidate.dataset.itemId === savedItem.id,
+    );
+    if (!tile) continue;
+
+    const image = tile.querySelector(".item-image");
+    usedItems.add(image);
+    tile.classList.add("is-used");
+    image.style.opacity = String(USED_ITEM_OPACITY);
+    const pageDuration = ITEM_PLAY_DURATION[savedItem.id];
+    const playDuration =
+      Number.isFinite(pageDuration) && pageDuration > 0
+        ? pageDuration
+        : savedItem.duration;
+    if (Number.isFinite(playDuration) && playDuration > 0) {
+      playedItemDurations.set(image, playDuration);
+      restoredPlaybackTime += playDuration;
+    }
+    usedItemOrder.push(savedItem.id);
+  }
+
+  nextSegmentStart = Math.min(restoredPlaybackTime, playbackLimit);
+  updateProductPress(nextSegmentStart);
+  if (savedItems.length > 0) {
+    dropdownIndicator.classList.add("is-hidden");
+  }
+};
+
+restoreUsedItems();
 
 addToBagButton.addEventListener("click", () => {
   if (isDumplingPage) return;
@@ -285,13 +448,29 @@ const showRecommendation = () => {
   }
 };
 
+const showExplodingWarning = () => {
+  if (!explodingWarningDialog.open) {
+    explodingWarningDialog.showModal();
+  }
+};
+
 exploreMoreButton.addEventListener("click", () => {
   recommendationDialog.close();
+});
+
+explodingWarningOkayButton.addEventListener("click", () => {
+  explodingWarningDialog.close();
 });
 
 recommendationDialog.addEventListener("click", (event) => {
   if (event.target === recommendationDialog) {
     recommendationDialog.close();
+  }
+});
+
+explodingWarningDialog.addEventListener("click", (event) => {
+  if (event.target === explodingWarningDialog) {
+    explodingWarningDialog.close();
   }
 });
 
@@ -350,39 +529,60 @@ const seekVideoTo = (time) =>
     }
   });
 
-const finishSegment = (endTime, runId, showRecommendationAfter = false) => {
+const finishSegment = (
+  endTime,
+  runId,
+  showRecommendationAfter = false,
+  showExplodingWarningAfter = false,
+) => {
   if (runId !== playbackRunId) return;
 
   cancelAnimationFrame(animationFrame);
   video.pause();
   video.currentTime = endTime;
   nextSegmentStart = endTime;
+  updateProductPress(endTime);
   isPlayingSegment = false;
   experience.classList.remove("is-playing");
   if (showRecommendationAfter) {
     showRecommendation();
   }
+  if (showExplodingWarningAfter) {
+    showExplodingWarning();
+  }
 };
 
-const watchSegment = (endTime, runId, showRecommendationAfter) => {
+const watchSegment = (
+  endTime,
+  runId,
+  showRecommendationAfter,
+  showExplodingWarningAfter,
+) => {
   if (runId !== playbackRunId) return;
+  updateProductPress(video.currentTime);
 
   if (video.currentTime >= endTime || video.ended) {
-    finishSegment(endTime, runId, showRecommendationAfter);
+    finishSegment(
+      endTime,
+      runId,
+      showRecommendationAfter,
+      showExplodingWarningAfter,
+    );
     return;
   }
 
   animationFrame = requestAnimationFrame(() =>
-    watchSegment(endTime, runId, showRecommendationAfter),
+    watchSegment(
+      endTime,
+      runId,
+      showRecommendationAfter,
+      showExplodingWarningAfter,
+    ),
   );
 };
 
 const playNextSegment = async (image) => {
-  if (
-    isPlayingSegment ||
-    (nextSegmentStart >= playbackLimit && !isDumplingPage) ||
-    usedItems.has(image)
-  ) {
+  if (isPlayingSegment || usedItems.has(image)) {
     return false;
   }
 
@@ -398,13 +598,20 @@ const playNextSegment = async (image) => {
   }
 
   if (nextSegmentStart >= playbackLimit) {
-    showRecommendation();
+    if (isDumplingPage) {
+      showRecommendation();
+    } else {
+      showExplodingWarning();
+    }
     return false;
   }
 
   usedItems.add(image);
   image.closest(".item-tile").classList.add("is-used");
   image.style.opacity = String(USED_ITEM_OPACITY);
+  playedItemDurations.set(image, playDuration);
+  usedItemOrder.push(itemId);
+  saveUsedItems();
   isPlayingSegment = true;
   experience.classList.add("is-playing");
   const runId = ++playbackRunId;
@@ -418,13 +625,23 @@ const playNextSegment = async (image) => {
     const endTime = Math.min(startTime + playDuration, videoEnd);
     const showRecommendationAfter =
       isDumplingPage && startTime + playDuration > playbackLimit;
+    const showExplodingWarningAfter =
+      !isDumplingPage &&
+      startTime + playDuration > playbackLimit &&
+      endTime >= playbackLimit;
 
     if (endTime - startTime < 0.001) {
-      finishSegment(startTime, runId, showRecommendationAfter);
+      finishSegment(
+        startTime,
+        runId,
+        showRecommendationAfter,
+        showExplodingWarningAfter,
+      );
       return false;
     }
 
     playedItemDurations.set(image, endTime - startTime);
+    saveUsedItems();
     video.currentTime = startTime;
     await video.play();
     if (runId !== playbackRunId) {
@@ -433,7 +650,12 @@ const playNextSegment = async (image) => {
     }
 
     animationFrame = requestAnimationFrame(() =>
-      watchSegment(endTime, runId, showRecommendationAfter),
+      watchSegment(
+        endTime,
+        runId,
+        showRecommendationAfter,
+        showExplodingWarningAfter,
+      ),
     );
     return true;
   } catch (error) {
@@ -474,6 +696,7 @@ const rewindPreviousSegment = async (playDuration) => {
       const nextTime = Math.max(endTime, video.currentTime - frameDuration);
       await seekVideoTo(nextTime);
       if (runId !== playbackRunId) return;
+      updateProductPress(video.currentTime);
 
       const remainingInterval =
         frameInterval - (performance.now() - frameStart);
@@ -502,16 +725,18 @@ carousel.addEventListener("click", (event) => {
 
   const itemId = tile.dataset.itemId;
   const configuredDuration = ITEM_PLAY_DURATION[itemId];
-  if (!Number.isFinite(configuredDuration) || configuredDuration <= 0) {
+  const playDuration = playedItemDurations.get(image) ?? configuredDuration;
+  if (!Number.isFinite(playDuration) || playDuration <= 0) {
     console.error(`Missing a valid play duration for ${itemId}.`);
     return;
   }
 
-  const playDuration = playedItemDurations.get(image) ?? configuredDuration;
   usedItems.delete(image);
   playedItemDurations.delete(image);
+  usedItemOrder = usedItemOrder.filter((usedItemId) => usedItemId !== itemId);
   tile.classList.remove("is-used");
   image.style.removeProperty("opacity");
+  saveUsedItems();
   void rewindPreviousSegment(playDuration);
 });
 
