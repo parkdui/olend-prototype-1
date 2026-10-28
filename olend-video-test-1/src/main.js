@@ -31,14 +31,14 @@ const items = [
 ];
 
 const DRAG_ITEM_SCALES = {
-  item001: 0.9,
-  item002: 0.9,
-  item003: 1.6,
-  item004: 2.4,
-  item005: 1.5,
-  item006: 1.2,
-  item007: 0.6,
-  item008: 2.4,
+  item001: 1,
+  item002: 1,
+  item003: 2,
+  item004: 2.8,
+  item005: 1.8,
+  item006: 1.5,
+  item007: 0.8,
+  item008: 2.8,
 };
 
 const ONA_ITEM_PLAY_DURATION = {
@@ -178,6 +178,7 @@ app.innerHTML = `
         <h3>${recommendationCopy.firstProductName}</h3>
         <p>${recommendationCopy.firstProductPrice}</p>
       </article>
+      ${isDumplingPage ? "" : '<a class="recommendation-product-link" href="./dumpling.html">'}
       <article class="recommendation-product">
         <div class="recommendation-image">
           <img
@@ -188,6 +189,7 @@ app.innerHTML = `
         <h3>${recommendationCopy.secondProductName}</h3>
         <p>${recommendationCopy.secondProductPrice}</p>
       </article>
+      ${isDumplingPage ? "" : "</a>"}
     </div>
     <button class="recommendation-explore" type="button">Explore more</button>
   </dialog>
