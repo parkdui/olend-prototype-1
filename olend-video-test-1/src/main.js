@@ -1,9 +1,11 @@
 import "./style.css";
 import onaBackgroundVideo from "./assets/ona_2.mp4";
-import dumplingBackgroundVideo from "./assets/dumpling_1_pressed.mp4";
+import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
 import logo from "./assets/Olend_logo_main.png";
 import shoppingBagIcon from "./assets/icons/Shopping-bag.svg";
 import usedItemIcon from "./assets/icons/Cross.svg";
+import recommendBigIcon from ".assets/icons/B_bag.svg";
+import recommendSmallIcon from ".assets/icons/S_bag.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
 import item003 from "./assets/items/item003.png";
