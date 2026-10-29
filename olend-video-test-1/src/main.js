@@ -67,15 +67,15 @@ const DRAG_ITEM_SCALES = {
   item011: 2,
   item012: 2,
   item013: 1,
-  item014: 1,
+  item014: 2.4,
   item015: 1.8,
   item016: 1,
-  item017: 2,
+  item017: 2.4,
 };
 
 const ONA_ITEM_PLAY_DURATION = {
-  item001: 0.2,
-  item002: 0.2,
+  item001: 0.1,
+  item002: 0.1,
   item003: 1,
   item004: 3,
   item005: 1.5,
@@ -86,8 +86,8 @@ const ONA_ITEM_PLAY_DURATION = {
   item010: 0.5,
   item011: 0.5,
   item012: 1,
-  item013: 0.6,
-  item014: 0.4,
+  item013: 0.1,
+  item014: 0.6,
   item015: 0.4,
   item016: 0.1,
   item017: 0.8,
@@ -110,7 +110,7 @@ const DUMPLING_ITEM_PLAY_DURATION = {
   item014: 1,
   item015: 0.5,
   item016: 0.1,
-  item017: 1,
+  item017: 2,
 };
 
 const ITEM_NAMES = {
@@ -448,7 +448,7 @@ addToBagButton.addEventListener("click", () => {
       (candidate) => candidate.dataset.itemId === itemId,
     );
     const image = tile?.querySelector(".item-image");
-    return total + (image ? playedItemDurations.get(image) ?? 0 : 0);
+    return total + (image ? (playedItemDurations.get(image) ?? 0) : 0);
   }, 0);
 
   if (usedDuration < 1.7) {
