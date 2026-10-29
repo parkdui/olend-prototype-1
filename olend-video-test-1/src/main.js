@@ -360,8 +360,8 @@ video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
 });
 
-const REVERSE_FRAME_RATE = 12;
-const USED_ITEM_OPACITY = 0.4;
+const REVERSE_FRAME_RATE = 24;
+const USED_ITEM_OPACITY = 0.5;
 const FAST_PLAYBACK_MIN_DURATION = 1;
 const FAST_PLAYBACK_RATE = 5;
 const VIDEO_SEEK_TOLERANCE = 0.02;

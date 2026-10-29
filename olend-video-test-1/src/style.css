@@ -192,7 +192,8 @@ button {
 .item-carousel {
   display: flex;
   gap: 3cqw;
-  padding: 0 5.65cqw 1cqh;
+  margin-top: -3cqw;
+  padding: 3cqw 5.65cqw 1cqh;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -237,11 +238,13 @@ button {
 .used-item-button {
   position: absolute;
   z-index: 1;
-  top: 1.3cqw;
-  right: 1.3cqw;
+  top: -3cqw;
+  right: -3cqw;
   display: none;
   width: 7.2cqw;
   height: 7.2cqw;
+  /* width: 2rem;
+  height: 2rem; */
   align-items: center;
   justify-content: center;
   border: 0;
