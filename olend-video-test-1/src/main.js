@@ -195,7 +195,6 @@ app.innerHTML = `
         <div class="video-progress-fill"></div>
       </div>
       <div class="video-progress-labels">
-        <span class="video-progress-empty">Empty</span>
         <span class="video-progress-value">0%</span>
       </div>
     </section>
@@ -472,7 +471,10 @@ const queueRecommendedItemForOna = (itemId) => {
     );
     queuedItems = serializedItems ? JSON.parse(serializedItems) : [];
   } catch (error) {
-    console.error("Unable to read items queued for the Ona recommendation:", error);
+    console.error(
+      "Unable to read items queued for the Ona recommendation:",
+      error,
+    );
     return;
   }
 
@@ -505,12 +507,13 @@ const transferRecommendedItemsToOna = () => {
     queuedItems = serializedQueuedItems
       ? JSON.parse(serializedQueuedItems)
       : [];
-    const serializedSavedItems = sessionStorage.getItem(
-      USED_ITEMS_STORAGE_KEY,
-    );
+    const serializedSavedItems = sessionStorage.getItem(USED_ITEMS_STORAGE_KEY);
     savedItems = serializedSavedItems ? JSON.parse(serializedSavedItems) : [];
   } catch (error) {
-    console.error("Unable to transfer recommended items to the Ona bag:", error);
+    console.error(
+      "Unable to transfer recommended items to the Ona bag:",
+      error,
+    );
     return;
   }
 
