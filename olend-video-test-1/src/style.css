@@ -224,12 +224,14 @@ button {
 }
 
 .item-image.is-dragging {
-  opacity: 0.35;
+  opacity: 0.5;
   cursor: grabbing;
 }
 
 .item-tile.is-used .item-image {
   cursor: default;
+  border-radius: 0.5rem;
+  border: 0.05rem dashed #000;
 }
 
 .used-item-button {
@@ -292,7 +294,6 @@ button {
   padding: 1cqh 4.1cqw;
   transform: translate(-50%, -50%);
   border: 0.125rem dashed #fff;
-  border-radius: 999rem;
   background: rgb(255 255 255 / 10%);
   text-align: center;
   transition: opacity 450ms ease, visibility 450ms ease;
