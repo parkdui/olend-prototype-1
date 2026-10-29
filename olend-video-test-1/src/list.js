@@ -16,7 +16,7 @@ const products = [
     name: "Ona Soft Bag",
     price: "CHF 96",
     image: onaImage,
-    href: "./index.html",
+    href: "./ona.html",
   },
   { name: "Brooklyn Bag", price: "CHF 96", image: brooklynImage },
   {

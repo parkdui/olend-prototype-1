@@ -118,7 +118,7 @@ button {
     calc(var(--safe-top) + 3.8cqh)
     5.65cqw
     calc(var(--safe-bottom) + 2.8cqh);
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 2.8cqh;
   overflow: hidden;
 }
@@ -141,6 +141,47 @@ button {
   display: flex;
   justify-self: end;
   gap: 3cqw;
+}
+
+.video-progress {
+  min-width: 0;
+  color: #000;
+}
+
+.video-progress-track {
+  width: 100%;
+  height: 0.35rem;
+  overflow: hidden;
+  background: #d6d6d6;
+}
+
+.video-progress-fill {
+  width: 0;
+  height: 100%;
+  background: #000;
+  transition: width 100ms linear;
+}
+
+.video-progress-labels {
+  position: relative;
+  min-height: 1.15rem;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  line-height: 1.15;
+}
+
+.video-progress-empty {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.video-progress-value {
+  position: absolute;
+  top: 0;
+  left: clamp(2.7rem, var(--progress-position, 0%), calc(100% - 2.7rem));
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .carousel-section {

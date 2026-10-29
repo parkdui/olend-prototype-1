@@ -182,6 +182,24 @@ app.innerHTML = `
       </div>
     </header>
 
+    <section class="video-progress" aria-label="Video progress">
+      <div
+        class="video-progress-track"
+        role="progressbar"
+        aria-label="Background video progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-valuetext="0%"
+      >
+        <div class="video-progress-fill"></div>
+      </div>
+      <div class="video-progress-labels">
+        <span class="video-progress-empty">Empty</span>
+        <span class="video-progress-value">0%</span>
+      </div>
+    </section>
+
     <section class="carousel-section" aria-label="Bag styles">
       <div class="item-carousel" aria-label="Scroll to explore bag styles">
         ${items
@@ -238,7 +256,7 @@ app.innerHTML = `
       <h2 id="recommendation-title" tabindex="-1">${recommendationCopy.heading}<br />${recommendationCopy.subheading}</h2>
     </div>
     <div class="recommendation-products">
-      ${isDumplingPage ? '<a class="recommendation-product-link" href="./index.html">' : ""}
+      ${isDumplingPage ? '<a class="recommendation-product-link" href="./ona.html">' : ""}
       <article class="recommendation-product">
         <div class="recommendation-image">
           <img
@@ -282,6 +300,9 @@ app.innerHTML = `
 `;
 
 const video = document.querySelector(".background-video");
+const progressTrack = document.querySelector(".video-progress-track");
+const progressFill = document.querySelector(".video-progress-fill");
+const progressValue = document.querySelector(".video-progress-value");
 const isIOS =
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -298,6 +319,25 @@ if (isIOS) {
     { once: true },
   );
 }
+
+const updateVideoProgress = () => {
+  const progress = Math.min(
+    100,
+    Math.max(0, (video.currentTime / playbackLimit) * 100),
+  );
+  const roundedProgress = Math.round(progress);
+  progressFill.style.width = `${progress}%`;
+  progressValue.style.setProperty("--progress-position", `${progress}%`);
+  progressValue.textContent = `${roundedProgress}%`;
+  progressTrack.setAttribute("aria-valuenow", String(roundedProgress));
+  progressTrack.setAttribute("aria-valuetext", `${roundedProgress}%`);
+};
+
+video.addEventListener("timeupdate", updateVideoProgress);
+video.addEventListener("seeked", updateVideoProgress);
+video.addEventListener("loadedmetadata", updateVideoProgress);
+updateVideoProgress();
+
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
 const dropdownIndicator = document.querySelector(".dropdown-indicator");
@@ -508,7 +548,7 @@ const transferRecommendedItemsToOna = () => {
 restoreUsedItems();
 
 recommendationDialog
-  .querySelector('.recommendation-product-link[href="./index.html"]')
+  .querySelector('.recommendation-product-link[href="./ona.html"]')
   ?.addEventListener("click", transferRecommendedItemsToOna);
 
 addToBagButton.addEventListener("click", () => {
