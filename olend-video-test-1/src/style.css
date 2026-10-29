@@ -680,8 +680,8 @@ button {
 
 .cart-item-image {
   display: block;
-  width: min(74%, 20.3rem);
-  aspect-ratio: 0.77;
+  width: min(60%, 20.3rem);
+  aspect-ratio: 0.6;
   object-fit: cover;
   background: #ebebeb;
 }

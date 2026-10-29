@@ -350,6 +350,7 @@ const USED_ITEM_OPACITY = 0.4;
 const FAST_PLAYBACK_MIN_DURATION = 1;
 const FAST_PLAYBACK_RATE = 5;
 const USED_ITEMS_STORAGE_KEY = "olend-used-items";
+const CART_VIDEO_TIME_STORAGE_KEY = "olend-cart-video-time";
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
@@ -453,6 +454,15 @@ addToBagButton.addEventListener("click", () => {
   if (usedDuration < 1.7) {
     showRecommendation();
     return;
+  }
+
+  try {
+    sessionStorage.setItem(
+      CART_VIDEO_TIME_STORAGE_KEY,
+      String(video.currentTime),
+    );
+  } catch (error) {
+    console.error("Unable to save the cart video frame:", error);
   }
 
   window.location.assign("./cart.html");
