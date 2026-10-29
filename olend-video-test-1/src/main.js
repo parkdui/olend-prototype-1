@@ -97,8 +97,8 @@ const ONA_ITEM_PLAY_DURATION = {
 const DUMPLING_ITEM_PLAY_DURATION = {
   item001: 0.6,
   item002: 0.7,
-  item003: null,
-  item004: null,
+  item003: 5,
+  item004: 5,
   item005: 2,
   item006: 2,
   item007: 0.7,
@@ -319,7 +319,9 @@ if (!isDumplingPage) {
         progressValue.style.setProperty("--progress-position", `${progress}%`);
         progressValue.textContent = `${Math.round(progress)}%`;
       } else {
-        console.error("Saved recommendation progress must be between 0 and 100.");
+        console.error(
+          "Saved recommendation progress must be between 0 and 100.",
+        );
       }
       sessionStorage.removeItem(RECOMMENDATION_PROGRESS_STORAGE_KEY);
     }
@@ -349,10 +351,7 @@ const setVideoProgress = (progress) => {
   const clampedProgress = Math.min(100, Math.max(0, progress));
   const roundedProgress = Math.round(clampedProgress);
   progressFill.style.width = `${clampedProgress}%`;
-  progressValue.style.setProperty(
-    "--progress-position",
-    `${clampedProgress}%`,
-  );
+  progressValue.style.setProperty("--progress-position", `${clampedProgress}%`);
   progressValue.textContent = `${roundedProgress}%`;
   progressTrack.setAttribute("aria-valuenow", String(roundedProgress));
   progressTrack.setAttribute("aria-valuetext", `${roundedProgress}%`);
@@ -639,7 +638,10 @@ recommendationDialog
         String(progress),
       );
     } catch (error) {
-      console.error("Unable to save progress for the Ona recommendation:", error);
+      console.error(
+        "Unable to save progress for the Ona recommendation:",
+        error,
+      );
     }
 
     transferRecommendedItemsToOna();
@@ -863,6 +865,11 @@ const playNextSegment = async (image) => {
     } else {
       showExplodingWarning();
     }
+    return false;
+  }
+
+  if (!isDumplingPage && nextSegmentStart + playDuration > playbackLimit) {
+    showExplodingWarning();
     return false;
   }
 
