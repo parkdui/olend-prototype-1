@@ -69,6 +69,12 @@ checkoutButton.addEventListener("click", () => {
   if (purchased) return;
   purchased = true;
 
+  try {
+    sessionStorage.removeItem("olend-used-items");
+  } catch (error) {
+    console.error("Unable to reset used items after purchase:", error);
+  }
+
   confetti({
     particleCount: 100,
     spread: 70,
