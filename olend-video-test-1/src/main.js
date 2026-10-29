@@ -162,6 +162,7 @@ const ITEM_PLAY_DURATION = isDumplingPage
   ? DUMPLING_ITEM_PLAY_DURATION
   : ONA_ITEM_PLAY_DURATION;
 const playbackLimit = isDumplingPage ? 5 : 10;
+const RECOMMENDATION_PROGRESS_STORAGE_KEY = "olend-recommendation-progress";
 const backgroundVideo = isDumplingPage
   ? dumplingBackgroundVideo
   : onaBackgroundVideo;
@@ -301,6 +302,32 @@ const video = document.querySelector(".background-video");
 const progressTrack = document.querySelector(".video-progress-track");
 const progressFill = document.querySelector(".video-progress-fill");
 const progressValue = document.querySelector(".video-progress-value");
+const progressContainer = document.querySelector(".video-progress");
+let recommendationProgressStart;
+let isAnimatingRecommendationProgress = false;
+
+if (!isDumplingPage) {
+  try {
+    const savedProgress = sessionStorage.getItem(
+      RECOMMENDATION_PROGRESS_STORAGE_KEY,
+    );
+    if (savedProgress !== null) {
+      const progress = Number(savedProgress);
+      if (Number.isFinite(progress) && progress >= 0 && progress <= 100) {
+        recommendationProgressStart = progress;
+        progressFill.style.width = `${progress}%`;
+        progressValue.style.setProperty("--progress-position", `${progress}%`);
+        progressValue.textContent = `${Math.round(progress)}%`;
+      } else {
+        console.error("Saved recommendation progress must be between 0 and 100.");
+      }
+      sessionStorage.removeItem(RECOMMENDATION_PROGRESS_STORAGE_KEY);
+    }
+  } catch (error) {
+    console.error("Unable to restore recommendation progress:", error);
+  }
+}
+
 const isIOS =
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -318,22 +345,70 @@ if (isIOS) {
   );
 }
 
-const updateVideoProgress = () => {
-  const progress = Math.min(
-    100,
-    Math.max(0, (video.currentTime / playbackLimit) * 100),
+const setVideoProgress = (progress) => {
+  const clampedProgress = Math.min(100, Math.max(0, progress));
+  const roundedProgress = Math.round(clampedProgress);
+  progressFill.style.width = `${clampedProgress}%`;
+  progressValue.style.setProperty(
+    "--progress-position",
+    `${clampedProgress}%`,
   );
-  const roundedProgress = Math.round(progress);
-  progressFill.style.width = `${progress}%`;
-  progressValue.style.setProperty("--progress-position", `${progress}%`);
   progressValue.textContent = `${roundedProgress}%`;
   progressTrack.setAttribute("aria-valuenow", String(roundedProgress));
   progressTrack.setAttribute("aria-valuetext", `${roundedProgress}%`);
 };
 
+const animateRecommendationProgress = (from, to) => {
+  isAnimatingRecommendationProgress = true;
+  progressContainer.classList.add("is-transitioning");
+  const startTime = performance.now();
+  const duration = 900;
+
+  const animate = (now) => {
+    const elapsed = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - (1 - elapsed) ** 3;
+    setVideoProgress(from + (to - from) * eased);
+
+    if (elapsed < 1) {
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    setVideoProgress(to);
+    progressContainer.classList.remove("is-transitioning");
+    isAnimatingRecommendationProgress = false;
+    updateVideoProgress();
+  };
+
+  requestAnimationFrame(animate);
+};
+
+const updateVideoProgress = () => {
+  if (isAnimatingRecommendationProgress) return;
+  if (
+    recommendationProgressStart !== undefined &&
+    video.readyState < HTMLMediaElement.HAVE_METADATA
+  ) {
+    return;
+  }
+
+  const progress = Math.min(
+    100,
+    Math.max(0, (video.currentTime / playbackLimit) * 100),
+  );
+
+  if (recommendationProgressStart !== undefined) {
+    const previousProgress = recommendationProgressStart;
+    recommendationProgressStart = undefined;
+    animateRecommendationProgress(previousProgress, progress);
+    return;
+  }
+
+  setVideoProgress(progress);
+};
+
 video.addEventListener("timeupdate", updateVideoProgress);
 video.addEventListener("seeked", updateVideoProgress);
-video.addEventListener("loadedmetadata", updateVideoProgress);
 updateVideoProgress();
 
 const experience = document.querySelector(".experience");
@@ -354,6 +429,7 @@ video.addEventListener("loadedmetadata", () => {
     ? video.duration
     : nextSegmentStart;
   video.currentTime = Math.min(nextSegmentStart, videoDuration, playbackLimit);
+  updateVideoProgress();
 });
 
 video.addEventListener("error", () => {
@@ -552,7 +628,22 @@ restoreUsedItems();
 
 recommendationDialog
   .querySelector('.recommendation-product-link[href="./ona.html"]')
-  ?.addEventListener("click", transferRecommendedItemsToOna);
+  ?.addEventListener("click", () => {
+    try {
+      const progress = Math.min(
+        100,
+        Math.max(0, (video.currentTime / playbackLimit) * 100),
+      );
+      sessionStorage.setItem(
+        RECOMMENDATION_PROGRESS_STORAGE_KEY,
+        String(progress),
+      );
+    } catch (error) {
+      console.error("Unable to save progress for the Ona recommendation:", error);
+    }
+
+    transferRecommendedItemsToOna();
+  });
 
 addToBagButton.addEventListener("click", () => {
   if (isDumplingPage) return;
