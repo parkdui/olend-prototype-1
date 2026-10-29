@@ -449,6 +449,7 @@ let isPlayingSegment = false;
 let animationFrame = 0;
 let playbackRunId = 0;
 let activeDrag = null;
+let pendingRecommendationRollback = null;
 const usedItems = new WeakSet();
 const playedItemDurations = new WeakMap();
 let usedItemOrder = [];
@@ -463,7 +464,10 @@ const syncUsedItemButtons = () => {
   setUsedItemButtonsDisabled(isPlayingSegment);
 };
 
-recommendationDialog.addEventListener("close", syncUsedItemButtons);
+recommendationDialog.addEventListener("close", () => {
+  syncUsedItemButtons();
+  rollbackPendingRecommendationItem();
+});
 explodingWarningDialog.addEventListener("close", syncUsedItemButtons);
 
 const saveUsedItems = () => {
@@ -623,11 +627,28 @@ const transferRecommendedItemsToOna = () => {
   }
 };
 
+function rollbackPendingRecommendationItem() {
+  if (!pendingRecommendationRollback) return;
+
+  const { image, tile, itemId, startTime } = pendingRecommendationRollback;
+  pendingRecommendationRollback = null;
+  usedItems.delete(image);
+  playedItemDurations.delete(image);
+  usedItemOrder = usedItemOrder.filter((usedItemId) => usedItemId !== itemId);
+  tile.classList.remove("is-used");
+  image.style.removeProperty("opacity");
+  nextSegmentStart = startTime;
+  video.currentTime = startTime;
+  dropdownIndicator.classList.toggle("is-hidden", usedItemOrder.length > 0);
+  saveUsedItems();
+}
+
 restoreUsedItems();
 
 recommendationDialog
   .querySelector('.recommendation-product-link[href="./ona.html"]')
   ?.addEventListener("click", () => {
+    pendingRecommendationRollback = null;
     try {
       const progress = Math.min(
         100,
@@ -849,10 +870,7 @@ const playNextSegment = async (image) => {
 
   const itemId = image.closest(".item-tile").dataset.itemId;
   const playDuration = ITEM_PLAY_DURATION[itemId];
-  if (
-    isDumplingPage &&
-    (playDuration === null || playDuration >= playbackLimit)
-  ) {
+  if (isDumplingPage && playDuration === null) {
     queueRecommendedItemForOna(itemId);
     showRecommendation();
     return false;
@@ -895,7 +913,17 @@ const playNextSegment = async (image) => {
     const startTime = nextSegmentStart;
     const endTime = Math.min(startTime + playDuration, videoEnd);
     const showRecommendationAfter =
-      isDumplingPage && startTime + playDuration > playbackLimit;
+      isDumplingPage &&
+      (startTime + playDuration > playbackLimit ||
+        playDuration >= playbackLimit);
+    if (showRecommendationAfter) {
+      pendingRecommendationRollback = {
+        image,
+        tile: image.closest(".item-tile"),
+        itemId,
+        startTime,
+      };
+    }
     const showExplodingWarningAfter =
       !isDumplingPage &&
       startTime + playDuration > playbackLimit &&
@@ -937,6 +965,9 @@ const playNextSegment = async (image) => {
     if (runId !== playbackRunId) return false;
 
     cancelAnimationFrame(animationFrame);
+    if (pendingRecommendationRollback?.image === image) {
+      pendingRecommendationRollback = null;
+    }
     video.pause();
     video.playbackRate = 1;
     isPlayingSegment = false;
