@@ -368,6 +368,7 @@ const VIDEO_SEEK_TOLERANCE = 0.02;
 const USED_ITEMS_STORAGE_KEY = "olend-used-items";
 const RECOMMENDED_ITEMS_STORAGE_KEY = "olend-recommended-items";
 const CART_VIDEO_TIME_STORAGE_KEY = "olend-cart-video-time";
+const CART_VIDEO_FRAME_STORAGE_KEY = "olend-cart-video-frame";
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
 let animationFrame = 0;
@@ -570,12 +571,35 @@ addToBagButton.addEventListener("click", () => {
   }
 
   try {
+    if (
+      video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+      throw new Error("The current video frame is not ready to capture.");
+    }
+
+    const frameWidth = Math.min(video.videoWidth, 720);
+    const frameHeight = Math.round(
+      (video.videoHeight / video.videoWidth) * frameWidth,
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = frameWidth;
+    canvas.height = frameHeight;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Unable to create a canvas for the cart video frame.");
+    }
+
+    context.drawImage(video, 0, 0, frameWidth, frameHeight);
+    const frameDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+    sessionStorage.setItem(CART_VIDEO_FRAME_STORAGE_KEY, frameDataUrl);
     sessionStorage.setItem(
       CART_VIDEO_TIME_STORAGE_KEY,
       String(video.currentTime),
     );
   } catch (error) {
-    console.error("Unable to save the cart video frame:", error);
+    console.error("Unable to capture the cart video frame:", error);
   }
 
   window.location.assign("./cart.html");

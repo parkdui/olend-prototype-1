@@ -5,11 +5,31 @@ import logo from "./assets/Olend_logo_main.png";
 import searchIcon from "./assets/icons/Top_search.svg";
 import cartIcon from "./assets/icons/Top_cart.svg";
 import onaImage from "./assets/listed_imgs/Ona-Cobalt_99e79005-90c0-46fb-9fac-89b0fa4768a6.jpg.webp";
-import onaBackgroundVideo from "./assets/ona_3.mp4";
 import confetti from "canvas-confetti";
 
 const app = document.querySelector("#app");
 const CART_VIDEO_TIME_STORAGE_KEY = "olend-cart-video-time";
+const CART_VIDEO_FRAME_STORAGE_KEY = "olend-cart-video-frame";
+let cartVideoFrame;
+let cartVideoTime;
+
+try {
+  const savedFrame = sessionStorage.getItem(CART_VIDEO_FRAME_STORAGE_KEY);
+  if (savedFrame?.startsWith("data:image/jpeg;base64,")) {
+    cartVideoFrame = savedFrame;
+  }
+
+  const savedVideoTime = sessionStorage.getItem(CART_VIDEO_TIME_STORAGE_KEY);
+  if (savedVideoTime !== null) {
+    cartVideoTime = Number(savedVideoTime);
+    if (!Number.isFinite(cartVideoTime) || cartVideoTime < 0) {
+      console.error("Saved cart video time must be a non-negative number.");
+      cartVideoTime = undefined;
+    }
+  }
+} catch (error) {
+  console.error("Unable to restore the saved cart video frame:", error);
+}
 
 app.innerHTML = `
   <header class="brand catalog-header">
@@ -23,7 +43,7 @@ app.innerHTML = `
   <main class="cart-content" aria-labelledby="cart-title">
     <h1 id="cart-title" class="cart-title" aria-live="polite">Shopping Cart</h1>
     <section class="cart-item" aria-label="Cart item">
-      <img class="cart-item-image" src="${onaImage}" alt="Ona Soft Bag in cobalt blue" />
+      <img class="cart-item-image" src="${cartVideoFrame ?? onaImage}" alt="Ona Soft Bag in cobalt blue" />
       <h2 class="cart-item-name">Ona Soft Bag</h2>
       <p class="cart-item-color">Cobalt blue</p>
       <p class="cart-item-price">CHF 90</p>
@@ -51,37 +71,8 @@ app.innerHTML = `
 `;
 
 const cartItemImage = app.querySelector(".cart-item-image");
-let cartVideoTime;
-
-try {
-  const savedVideoTime = sessionStorage.getItem(CART_VIDEO_TIME_STORAGE_KEY);
-  if (savedVideoTime !== null) {
-    cartVideoTime = Number(savedVideoTime);
-    if (!Number.isFinite(cartVideoTime) || cartVideoTime < 0) {
-      console.error("Saved cart video time must be a non-negative number.");
-      cartVideoTime = undefined;
-    }
-  }
-} catch (error) {
-  console.error("Unable to restore the saved cart video frame:", error);
-}
-
 if (cartVideoTime !== undefined) {
-  const cartVideo = document.createElement("video");
-  cartVideo.className = cartItemImage.className;
-  cartVideo.setAttribute("aria-label", cartItemImage.alt);
-  cartVideo.src = onaBackgroundVideo;
-  cartVideo.preload = "auto";
-  cartVideo.muted = true;
-  cartVideo.playsInline = true;
-  cartVideo.addEventListener("loadedmetadata", () => {
-    const lastFrameTime = Math.max(0, cartVideo.duration - 0.001);
-    cartVideo.currentTime = Math.min(cartVideoTime, lastFrameTime);
-  });
-  cartVideo.addEventListener("error", () => {
-    console.error("Unable to load the saved cart video frame.");
-  });
-  cartItemImage.replaceWith(cartVideo);
+  cartItemImage.dataset.videoTime = String(cartVideoTime);
 }
 
 let quantity = 1;
@@ -108,6 +99,7 @@ checkoutButton.addEventListener("click", () => {
   try {
     sessionStorage.removeItem("olend-used-items");
     sessionStorage.removeItem(CART_VIDEO_TIME_STORAGE_KEY);
+    sessionStorage.removeItem(CART_VIDEO_FRAME_STORAGE_KEY);
   } catch (error) {
     console.error("Unable to reset cart session after purchase:", error);
   }
