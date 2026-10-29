@@ -294,7 +294,7 @@ button {
   min-height: 5.2cqh;
   align-items: center;
   justify-content: center;
-  padding: 1cqh 4.1cqw;
+  padding: 2cqh 4.1cqw;
   transform: translate(-50%, -50%);
   border: 0.125rem dashed #fff;
   background: rgb(255 255 255 / 10%);
@@ -367,7 +367,7 @@ button {
   min-height: 5.7cqh;
   flex: 1;
   border: 0.0625rem solid var(--ink);
-  padding: 0 3.6cqw;
+  padding: 0.8rem 3.6cqw;
   font-size: 1.125rem;
   letter-spacing: 0.02em;
   cursor: pointer;
