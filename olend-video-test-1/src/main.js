@@ -333,18 +333,28 @@ if (!isDumplingPage) {
 const isIOS =
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let isIOSInitialFrameReady = !isIOS;
 if (isDumplingPage && !isIOS) {
   video.style.viewTransitionName = "dumpling-bag";
 }
 if (isIOS) {
-  video.autoplay = true;
   video.addEventListener(
     "loadeddata",
     () => {
-      if (!isPlayingSegment) video.pause();
+      video.pause();
+      video.autoplay = false;
+      video.removeAttribute("autoplay");
+      isIOSInitialFrameReady = true;
+      setInitialVideoPosition();
     },
     { once: true },
   );
+  video.addEventListener("play", () => {
+    if (isIOSInitialFrameReady && !isPlayingSegment) {
+      video.pause();
+    }
+  });
+  video.autoplay = true;
 }
 
 const setVideoProgress = (progress) => {
@@ -423,13 +433,17 @@ const explodingWarningCloseButton = document.querySelector(
   ".exploding-warning-close",
 );
 
-video.addEventListener("loadedmetadata", () => {
+function setInitialVideoPosition() {
+  if (!isIOSInitialFrameReady) return;
+
   const videoDuration = Number.isFinite(video.duration)
     ? video.duration
     : nextSegmentStart;
   video.currentTime = Math.min(nextSegmentStart, videoDuration, playbackLimit);
   updateVideoProgress();
-});
+}
+
+video.addEventListener("loadedmetadata", setInitialVideoPosition);
 
 video.addEventListener("error", () => {
   console.error("Unable to load the background video.");
