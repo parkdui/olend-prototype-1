@@ -6,6 +6,10 @@
   font-display: swap;
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 :root {
   font-family: "Suisse thin", sans-serif;
   font-optical-sizing: auto;
@@ -97,6 +101,11 @@ button {
   object-fit: cover;
   object-position: center;
   background: #fff;
+}
+
+::view-transition-group(dumpling-bag) {
+  animation-duration: 700ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .experience {
@@ -683,7 +692,6 @@ button {
   width: min(60%, 20.3rem);
   aspect-ratio: 0.6;
   object-fit: cover;
-  background: #ebebeb;
 }
 
 .cart-item-name {
@@ -799,6 +807,10 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(dumpling-bag) {
+    animation-duration: 1ms;
+  }
+
   *,
   *::before,
   *::after {

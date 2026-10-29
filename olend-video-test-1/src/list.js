@@ -57,3 +57,12 @@ app.innerHTML = `
       .join("")}
   </main>
 `;
+
+const dumplingLink = [...app.querySelectorAll(".catalog-card-link")].find(
+  (link) => new URL(link.href).pathname.endsWith("/dumpling.html"),
+);
+
+dumplingLink?.addEventListener("click", () => {
+  dumplingLink.querySelector(".catalog-card-image").style.viewTransitionName =
+    "dumpling-bag";
+});

@@ -71,7 +71,6 @@ if (cartVideoTime !== undefined) {
   cartVideo.className = cartItemImage.className;
   cartVideo.setAttribute("aria-label", cartItemImage.alt);
   cartVideo.src = onaBackgroundVideo;
-  cartVideo.poster = onaImage;
   cartVideo.preload = "auto";
   cartVideo.muted = true;
   cartVideo.playsInline = true;
@@ -122,6 +121,7 @@ checkoutButton.addEventListener("click", () => {
   cartTitle.textContent = "Successfully Purchased";
   quantityControl.hidden = true;
   checkoutButton.hidden = true;
-  app.querySelector("[data-cart-subtotal]").textContent = `CHF ${90 * quantity}`;
+  app.querySelector("[data-cart-subtotal]").textContent =
+    `CHF ${90 * quantity}`;
   cartSummary.hidden = false;
 });

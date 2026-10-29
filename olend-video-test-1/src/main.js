@@ -279,6 +279,9 @@ app.innerHTML = `
 `;
 
 const video = document.querySelector(".background-video");
+if (isDumplingPage) {
+  video.style.viewTransitionName = "dumpling-bag";
+}
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
 const dropdownIndicator = document.querySelector(".dropdown-indicator");
