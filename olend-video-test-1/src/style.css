@@ -525,6 +525,10 @@ button {
   line-height: 1.22;
 }
 
+.recommendation-heading h2:focus {
+  outline: none;
+}
+
 .recommendation-products {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
