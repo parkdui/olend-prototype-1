@@ -62,15 +62,15 @@ const DRAG_ITEM_SCALES = {
   item006: 1.5,
   item007: 0.8,
   item008: 2.8,
-  item009: 1,
-  item010: 1,
-  item011: 1,
-  item012: 1,
+  item009: 2,
+  item010: 1.8,
+  item011: 2,
+  item012: 2,
   item013: 1,
   item014: 1,
-  item015: 1,
+  item015: 1.8,
   item016: 1,
-  item017: 1,
+  item017: 2,
 };
 
 const ONA_ITEM_PLAY_DURATION = {
@@ -102,15 +102,15 @@ const DUMPLING_ITEM_PLAY_DURATION = {
   item006: 2,
   item007: 0.7,
   item008: 3,
-  item009: 0.6,
-  item010: 0.6,
+  item009: 0.8,
+  item010: 0.8,
   item011: 0.6,
-  item012: 0.6,
-  item013: 0.6,
-  item014: 0.6,
-  item015: 0.6,
-  item016: 0.6,
-  item017: 0.6,
+  item012: 3,
+  item013: 0.3,
+  item014: 1,
+  item015: 0.5,
+  item016: 0.1,
+  item017: 1,
 };
 
 const ITEM_NAMES = {
@@ -125,7 +125,7 @@ const ITEM_NAMES = {
   item009: "Power adapter",
   item010: "Coffee cup",
   item011: "Cap",
-  item012: "Chocolate",
+  item012: "Milk",
   item013: "Cigarettes",
   item014: "Umbrella",
   item015: "Sunglasses",
@@ -347,7 +347,6 @@ video.addEventListener("error", () => {
 
 const REVERSE_FRAME_RATE = 12;
 const USED_ITEM_OPACITY = 0.4;
-const RECOMMENDATION_PLAY_DURATION_LIMIT = 1.7;
 const FAST_PLAYBACK_MIN_DURATION = 1;
 const FAST_PLAYBACK_RATE = 5;
 const USED_ITEMS_STORAGE_KEY = "olend-used-items";
@@ -361,11 +360,9 @@ const playedItemDurations = new WeakMap();
 let usedItemOrder = [];
 
 const setUsedItemButtonsDisabled = (disabled) => {
-  carousel
-    .querySelectorAll(".used-item-button")
-    .forEach((button) => {
-      button.disabled = disabled;
-    });
+  carousel.querySelectorAll(".used-item-button").forEach((button) => {
+    button.disabled = disabled;
+  });
 };
 
 const saveUsedItems = () => {
@@ -445,16 +442,7 @@ restoreUsedItems();
 addToBagButton.addEventListener("click", () => {
   if (isDumplingPage) return;
 
-  const usedPlayDuration = [
-    ...carousel.querySelectorAll(".item-tile.is-used"),
-  ].reduce((total, tile) => {
-    const duration = ITEM_PLAY_DURATION[tile.dataset.itemId];
-    return Number.isFinite(duration) ? total + duration : total;
-  }, 0);
-
-  if (usedPlayDuration < RECOMMENDATION_PLAY_DURATION_LIMIT) {
-    recommendationDialog.showModal();
-  }
+  window.location.assign("./cart.html");
 });
 
 const showRecommendation = () => {

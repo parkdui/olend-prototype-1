@@ -10,6 +10,8 @@ export default defineConfig({
       input: {
         index: resolve(projectRoot, "index.html"),
         dumpling: resolve(projectRoot, "dumpling.html"),
+        list: resolve(projectRoot, "list.html"),
+        cart: resolve(projectRoot, "cart.html"),
       },
     },
   },
