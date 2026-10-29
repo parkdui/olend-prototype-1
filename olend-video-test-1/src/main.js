@@ -232,7 +232,7 @@ app.innerHTML = `
         alt=""
         aria-hidden="true"
       />
-      <h2 id="recommendation-title">${recommendationCopy.heading}<br />${recommendationCopy.subheading}</h2>
+      <h2 id="recommendation-title" tabindex="-1">${recommendationCopy.heading}<br />${recommendationCopy.subheading}</h2>
     </div>
     <div class="recommendation-products">
       ${isDumplingPage ? '<a class="recommendation-product-link" href="./index.html">' : ""}
@@ -442,12 +442,28 @@ restoreUsedItems();
 addToBagButton.addEventListener("click", () => {
   if (isDumplingPage) return;
 
+  const usedDuration = usedItemOrder.reduce((total, itemId) => {
+    const tile = [...carousel.querySelectorAll(".item-tile")].find(
+      (candidate) => candidate.dataset.itemId === itemId,
+    );
+    const image = tile?.querySelector(".item-image");
+    return total + (image ? playedItemDurations.get(image) ?? 0 : 0);
+  }, 0);
+
+  if (usedDuration < 1.7) {
+    showRecommendation();
+    return;
+  }
+
   window.location.assign("./cart.html");
 });
 
 const showRecommendation = () => {
   if (!recommendationDialog.open) {
     recommendationDialog.showModal();
+    recommendationDialog
+      .querySelector("#recommendation-title")
+      .focus({ preventScroll: true });
   }
 };
 
