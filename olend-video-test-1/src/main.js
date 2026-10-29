@@ -1,6 +1,6 @@
 import "./style.css";
 import "./frame.js";
-import onaBackgroundVideo from "./assets/ona_3.mp4";
+import onaBackgroundVideo from "./assets/ona_5.mp4";
 import dumplingBackgroundVideo from "./assets/dumpling_3.mp4";
 import hamburgerIcon from "./assets/icons/Top_hamburger_menu.svg";
 import logo from "./assets/Olend_logo_main.png";
@@ -849,7 +849,10 @@ const playNextSegment = async (image) => {
 
   const itemId = image.closest(".item-tile").dataset.itemId;
   const playDuration = ITEM_PLAY_DURATION[itemId];
-  if (isDumplingPage && playDuration === null) {
+  if (
+    isDumplingPage &&
+    (playDuration === null || playDuration >= playbackLimit)
+  ) {
     queueRecommendedItemForOna(itemId);
     showRecommendation();
     return false;
