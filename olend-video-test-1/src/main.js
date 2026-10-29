@@ -14,6 +14,8 @@ import smallDumplingImage from "./assets/popup-imgs/s_dumpling_bag.png";
 import smallMicroOnaImage from "./assets/popup-imgs/s_micro_ona_soft_bag.png";
 import largeBrooklynImage from "./assets/popup-imgs/b_brooklyn_bag.png";
 import largeOnaImage from "./assets/popup-imgs/b_ona_soft_bag.png";
+import onaPoster from "./assets/listed_imgs/Ona-Cobalt_99e79005-90c0-46fb-9fac-89b0fa4768a6.jpg.webp";
+import dumplingPoster from "./assets/listed_imgs/Olendecommerce14 copy.jpg.webp";
 import explodingWarningText from "./assets/exploding_warning_txt.svg";
 import item001 from "./assets/items/item001.png";
 import item002 from "./assets/items/item002.png";
@@ -164,9 +166,10 @@ const playbackLimit = isDumplingPage ? 5 : 10;
 const backgroundVideo = isDumplingPage
   ? dumplingBackgroundVideo
   : onaBackgroundVideo;
+const backgroundVideoPoster = isDumplingPage ? dumplingPoster : onaPoster;
 
 app.innerHTML = `
-  <video class="background-video" aria-hidden="true" muted playsinline preload="auto">
+  <video class="background-video" aria-hidden="true" muted playsinline webkit-playsinline preload="auto" poster="${backgroundVideoPoster}">
     <source src="${backgroundVideo}" type="video/mp4" />
   </video>
   <main class="experience">
@@ -279,8 +282,21 @@ app.innerHTML = `
 `;
 
 const video = document.querySelector(".background-video");
-if (isDumplingPage) {
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+if (isDumplingPage && !isIOS) {
   video.style.viewTransitionName = "dumpling-bag";
+}
+if (isIOS) {
+  video.autoplay = true;
+  video.addEventListener(
+    "loadeddata",
+    () => {
+      if (!isPlayingSegment) video.pause();
+    },
+    { once: true },
+  );
 }
 const experience = document.querySelector(".experience");
 const carousel = document.querySelector(".item-carousel");
@@ -294,50 +310,8 @@ const exploreMoreButton = document.querySelector(".recommendation-explore");
 const explodingWarningCloseButton = document.querySelector(
   ".exploding-warning-close",
 );
-let lastTouchTap = null;
-
-const enterFullscreen = async () => {
-  if (document.fullscreenElement) return;
-
-  const fullscreenTarget = app.requestFullscreen
-    ? app
-    : document.documentElement;
-  if (!fullscreenTarget.requestFullscreen) {
-    console.error("Fullscreen mode is not supported by this browser.");
-    return;
-  }
-
-  try {
-    await fullscreenTarget.requestFullscreen();
-  } catch (error) {
-    console.error("Unable to enter fullscreen mode:", error);
-  }
-};
-
-app.addEventListener("dblclick", () => {
-  void enterFullscreen();
-});
-
-app.addEventListener("pointerup", (event) => {
-  if (event.pointerType !== "touch" || activeDrag) return;
-
-  const now = performance.now();
-  const tap = { x: event.clientX, y: event.clientY, time: now };
-  if (
-    lastTouchTap &&
-    now - lastTouchTap.time < 350 &&
-    Math.hypot(tap.x - lastTouchTap.x, tap.y - lastTouchTap.y) < 40
-  ) {
-    lastTouchTap = null;
-    void enterFullscreen();
-    return;
-  }
-
-  lastTouchTap = tap;
-});
 
 video.addEventListener("loadedmetadata", () => {
-  video.pause();
   const videoDuration = Number.isFinite(video.duration)
     ? video.duration
     : nextSegmentStart;
@@ -352,7 +326,9 @@ const REVERSE_FRAME_RATE = 12;
 const USED_ITEM_OPACITY = 0.4;
 const FAST_PLAYBACK_MIN_DURATION = 1;
 const FAST_PLAYBACK_RATE = 5;
+const VIDEO_SEEK_TOLERANCE = 0.02;
 const USED_ITEMS_STORAGE_KEY = "olend-used-items";
+const RECOMMENDED_ITEMS_STORAGE_KEY = "olend-recommended-items";
 const CART_VIDEO_TIME_STORAGE_KEY = "olend-cart-video-time";
 let nextSegmentStart = 0;
 let isPlayingSegment = false;
@@ -368,6 +344,13 @@ const setUsedItemButtonsDisabled = (disabled) => {
     button.disabled = disabled;
   });
 };
+
+const syncUsedItemButtons = () => {
+  setUsedItemButtonsDisabled(isPlayingSegment);
+};
+
+recommendationDialog.addEventListener("close", syncUsedItemButtons);
+explodingWarningDialog.addEventListener("close", syncUsedItemButtons);
 
 const saveUsedItems = () => {
   const savedItems = usedItemOrder.flatMap((itemId) => {
@@ -441,7 +424,92 @@ const restoreUsedItems = () => {
   }
 };
 
+const queueRecommendedItemForOna = (itemId) => {
+  let queuedItems;
+  try {
+    const serializedItems = sessionStorage.getItem(
+      RECOMMENDED_ITEMS_STORAGE_KEY,
+    );
+    queuedItems = serializedItems ? JSON.parse(serializedItems) : [];
+  } catch (error) {
+    console.error("Unable to read items queued for the Ona recommendation:", error);
+    return;
+  }
+
+  if (!Array.isArray(queuedItems)) {
+    console.error("Queued recommended items must be an array.");
+    return;
+  }
+
+  if (!queuedItems.includes(itemId)) {
+    queuedItems.push(itemId);
+  }
+
+  try {
+    sessionStorage.setItem(
+      RECOMMENDED_ITEMS_STORAGE_KEY,
+      JSON.stringify(queuedItems),
+    );
+  } catch (error) {
+    console.error("Unable to save the item for the Ona recommendation:", error);
+  }
+};
+
+const transferRecommendedItemsToOna = () => {
+  let queuedItems;
+  let savedItems;
+  try {
+    const serializedQueuedItems = sessionStorage.getItem(
+      RECOMMENDED_ITEMS_STORAGE_KEY,
+    );
+    queuedItems = serializedQueuedItems
+      ? JSON.parse(serializedQueuedItems)
+      : [];
+    const serializedSavedItems = sessionStorage.getItem(
+      USED_ITEMS_STORAGE_KEY,
+    );
+    savedItems = serializedSavedItems ? JSON.parse(serializedSavedItems) : [];
+  } catch (error) {
+    console.error("Unable to transfer recommended items to the Ona bag:", error);
+    return;
+  }
+
+  if (!Array.isArray(queuedItems) || !Array.isArray(savedItems)) {
+    console.error("Saved bag items must be arrays.");
+    return;
+  }
+
+  const itemsToRestore = new Map(
+    savedItems
+      .filter((savedItem) => savedItem && ITEM_NAMES[savedItem.id])
+      .map((savedItem) => [savedItem.id, savedItem]),
+  );
+  for (const itemId of queuedItems) {
+    const duration = ONA_ITEM_PLAY_DURATION[itemId];
+    if (!ITEM_NAMES[itemId] || !Number.isFinite(duration) || duration <= 0) {
+      console.error("Ignoring an invalid item queued for the Ona bag:", itemId);
+      continue;
+    }
+
+    itemsToRestore.set(itemId, { id: itemId, duration });
+  }
+
+  try {
+    sessionStorage.setItem(
+      USED_ITEMS_STORAGE_KEY,
+      JSON.stringify([...itemsToRestore.values()]),
+    );
+    sessionStorage.removeItem(RECOMMENDED_ITEMS_STORAGE_KEY);
+  } catch (error) {
+    console.error("Unable to save transferred Ona bag items:", error);
+  }
+};
+
 restoreUsedItems();
+
+recommendationDialog
+  .querySelector('.recommendation-product-link[href="./index.html"]')
+  ?.addEventListener("click", transferRecommendedItemsToOna);
 
 addToBagButton.addEventListener("click", () => {
   if (isDumplingPage) return;
@@ -532,8 +600,7 @@ const waitForVideoMetadata = () => {
 
 const seekVideoTo = (time) =>
   new Promise((resolve, reject) => {
-    const seekTolerance = 0.02;
-    if (Math.abs(video.currentTime - time) <= seekTolerance) {
+    if (Math.abs(video.currentTime - time) <= VIDEO_SEEK_TOLERANCE) {
       resolve();
       return;
     }
@@ -543,7 +610,7 @@ const seekVideoTo = (time) =>
       video.removeEventListener("error", handleError);
     };
     const handleSeeked = () => {
-      if (Math.abs(video.currentTime - time) > seekTolerance) return;
+      if (Math.abs(video.currentTime - time) > VIDEO_SEEK_TOLERANCE) return;
 
       cleanup();
       resolve();
@@ -555,7 +622,10 @@ const seekVideoTo = (time) =>
     video.addEventListener("seeked", handleSeeked);
     video.addEventListener("error", handleError);
     video.currentTime = time;
-    if (!video.seeking && Math.abs(video.currentTime - time) <= seekTolerance) {
+    if (
+      !video.seeking &&
+      Math.abs(video.currentTime - time) <= VIDEO_SEEK_TOLERANCE
+    ) {
       cleanup();
       resolve();
     }
@@ -621,6 +691,7 @@ const playNextSegment = async (image) => {
   const itemId = image.closest(".item-tile").dataset.itemId;
   const playDuration = ITEM_PLAY_DURATION[itemId];
   if (isDumplingPage && playDuration === null) {
+    queueRecommendedItemForOna(itemId);
     showRecommendation();
     return false;
   }
@@ -734,7 +805,10 @@ const rewindPreviousSegment = async (playDuration) => {
     const frameDuration = reversePlaybackRate / REVERSE_FRAME_RATE;
     const frameInterval = 1000 / REVERSE_FRAME_RATE;
 
-    while (runId === playbackRunId && video.currentTime > endTime) {
+    while (
+      runId === playbackRunId &&
+      video.currentTime - endTime > VIDEO_SEEK_TOLERANCE
+    ) {
       const frameStart = performance.now();
       const nextTime = Math.max(endTime, video.currentTime - frameDuration);
       await seekVideoTo(nextTime);
@@ -758,10 +832,8 @@ const rewindPreviousSegment = async (playDuration) => {
   }
 };
 
-carousel.addEventListener("click", (event) => {
-  const resetButton = event.target.closest(".used-item-button");
-  if (!resetButton || isPlayingSegment) return;
-
+const resetUsedItem = (resetButton) => {
+  if (isPlayingSegment) return;
   const tile = resetButton.closest(".item-tile");
   const image = tile.querySelector(".item-image");
   if (!usedItems.has(image)) return;
@@ -781,6 +853,14 @@ carousel.addEventListener("click", (event) => {
   image.style.removeProperty("opacity");
   saveUsedItems();
   void rewindPreviousSegment(playDuration);
+};
+
+carousel.querySelectorAll(".used-item-button").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    resetUsedItem(button);
+  });
 });
 
 const clearDrag = () => {

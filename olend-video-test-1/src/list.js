@@ -61,8 +61,13 @@ app.innerHTML = `
 const dumplingLink = [...app.querySelectorAll(".catalog-card-link")].find(
   (link) => new URL(link.href).pathname.endsWith("/dumpling.html"),
 );
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-dumplingLink?.addEventListener("click", () => {
-  dumplingLink.querySelector(".catalog-card-image").style.viewTransitionName =
-    "dumpling-bag";
-});
+if (!isIOS) {
+  dumplingLink?.addEventListener("click", () => {
+    dumplingLink.querySelector(".catalog-card-image").style.viewTransitionName =
+      "dumpling-bag";
+  });
+}

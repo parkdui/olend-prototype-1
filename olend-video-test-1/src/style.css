@@ -193,6 +193,7 @@ button {
 
 .used-item-button {
   position: absolute;
+  z-index: 1;
   top: 1.3cqw;
   right: 1.3cqw;
   display: none;
@@ -205,6 +206,7 @@ button {
   padding: 0;
   background: transparent;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .used-item-button:focus-visible {
@@ -220,6 +222,7 @@ button {
   display: block;
   width: 5.15cqw;
   height: 5.15cqw;
+  pointer-events: none;
 }
 
 .item-tile.is-used .used-item-button {
