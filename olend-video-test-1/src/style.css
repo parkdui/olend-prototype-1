@@ -153,6 +153,7 @@ button {
   height: 0.35rem;
   overflow: hidden;
   background: #d6d6d6;
+  border: 0.01rem solid #000;
 }
 
 .video-progress-fill {
@@ -179,8 +180,7 @@ button {
 .video-progress-value {
   position: absolute;
   top: 0;
-  left: clamp(2.7rem, var(--progress-position, 0%), calc(100% - 2.7rem));
-  transform: translateX(-50%);
+  left: clamp(0%, var(--progress-position, 0%), calc(100% - 2.7rem));
   white-space: nowrap;
 }
 
